@@ -1,6 +1,4 @@
 require 'net/http'
-require 'cgi'
-require 'stringio'
 require_relative 'ruby-bencode/lib/bencode.rb'
 require 'digest/sha1'
 require 'ipaddr'
@@ -68,7 +66,6 @@ if false
 else
   request = URI(metainfo['announce'])
   request.query = URI.encode_www_form(params)
-  #puts request
   res = Net::HTTP.get_response(request)
 end
 
