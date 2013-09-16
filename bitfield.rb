@@ -4,6 +4,6 @@ class Bitfield
   
   def initialize(*bit_array)
     @bits = bit_array.join
-    puts @bits.inspect
+    puts @bits
   end  
 end

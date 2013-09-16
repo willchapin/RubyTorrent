@@ -1,13 +1,16 @@
 class Peer
   
-  attr_accessor :connection, :initial_response, :bitfield
+  attr_accessor :connection, :initial_response, :bitfield, :state
 
   def initialize(ip_string, port, handshake)
     @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
+    @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
     greet(handshake)
     set_initial_response
     @bitfield = set_bitfield
   end
+  
+
 
   def greet(handshake)
     @connection.write(handshake)

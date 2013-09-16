@@ -13,5 +13,4 @@ class Tracker
     request.query = URI.encode_www_form(params)
     @response = BEncode.load(Net::HTTP.get_response(request).body)
   end
-
 end

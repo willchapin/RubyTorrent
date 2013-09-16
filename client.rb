@@ -8,9 +8,10 @@ class Client
     set_tracker
     set_handshake
     make_tracker_request
-    puts @tracker.response
     set_peers
+    puts @meta_info["info"]["piece length"]
   end
+  
   
   def set_handshake
     @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{get_info_hash}#{get_id}"
@@ -58,6 +59,7 @@ class Client
   end
   
   def set_peers
+    @peers ||= []
     peers = @tracker.response["peers"].scan(/.{6}/)
     
     peers.map! do |peer|
@@ -66,16 +68,8 @@ class Client
     
     peers.each do |ip_string, port| 
       begin
-        Timeout::timeout(4) do 
-          peer = Peer.new(ip_string, port, @handshake)
-          
-          
-        # bitfield_length = sock.read(4).unpack("N")[0]
-        # puts bitfield_length
-        # msg_id = sock.read(1)
-        # puts msg_id.bytes
-        # bitfield = sock.read(bitfield_length - 1).unpack("B8" * (bitfield_length - 1))
-        # puts bitfield
+        Timeout::timeout(2) do 
+          @peers << Peer.new(ip_string, port, @handshake)
         end
       rescue => exception
        # puts exception.backtrace
@@ -83,21 +77,4 @@ class Client
       end
     end
   end 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 end
