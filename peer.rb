@@ -10,8 +10,6 @@ class Peer
     @bitfield = set_bitfield
   end
   
-
-
   def greet(handshake)
     @connection.write(handshake)
   end
@@ -28,13 +26,23 @@ class Peer
   end
   
   def set_bitfield
-    bitfield_length = @connection.read(4).unpack("N")[0]
-    message_id = @connection.read(1)
-    if message_id.bytes[0] == 5
-      @bitfield = Bitfield.new(@connection.read(bitfield_length - 1).unpack("B8" * (bitfield_length - 1)))
+    length = @connection.read(4).unpack("N")[0]
+    message_id = @connection.read(1).bytes[0]
+    if message_id == 5
+      @bitfield = Bitfield.new(@connection.read(length - 1).unpack("B8" * (length - 1)))
     else
       puts "no bitfield"
+      parse_message(length, message_id)
     end
+  end
+  
+  def parse_message(length, message_id)
+  
+  end
+  
+  
+  def get_piece(index)
+  
   end
   
 end

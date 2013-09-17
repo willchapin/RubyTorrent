@@ -1,15 +1,21 @@
 class Client
   
-  attr_accessor :torrent, :meta_info, :tracker, :set_peer_list, :handshake, :peers
+  attr_accessor :torrent, :meta_info, :tracker, :bitfield, :handshake, :peers
 
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
     set_meta_info
     set_tracker
+    set_bitfield
     set_handshake
     make_tracker_request
     set_peers
     puts @meta_info["info"]["piece length"]
+  end
+  
+  def set_bitfield
+    @bitfield = "0" * (@meta_info["info"]["pieces"].length/20)
+    puts @bitfield
   end
   
   
