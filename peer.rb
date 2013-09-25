@@ -38,16 +38,4 @@ class Peer
     end
   end
   
-  def send_interested
-  
-  end
-  
-  def parse_message(length, message_id)
-  end
-  
-  
-  def get_piece(index)
-  
-  end
-  
 end

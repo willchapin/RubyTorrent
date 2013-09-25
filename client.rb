@@ -86,9 +86,5 @@ class Client
     Message.send_interested(peer)
     id = Message.parse_response(peer)  
   end
-  
-  def request_unchoke(peer)
-    
-  end
    
 end
