@@ -8,6 +8,8 @@ require_relative 'client'
 require_relative 'tracker'
 require_relative 'peer'
 require_relative 'bitfield'
+require_relative 'message'
+
 
 my_cli = Client.new(ARGV.first)
 peer = my_cli.peers.last
@@ -17,10 +19,15 @@ puts my_cli.meta_info["info"]
 # the following is a simple download of one piece
 
 interested = "\0\0\0\1\2"
-peer.connection.write(interested)
+length = "\0\0\0\1"
+id = "\2"
+peer.connection.write(length + id)
 
 puts "unchoke"
-puts peer.connection.read(5).bytes
+len = peer.connection.read(4).unpack("N")
+id = peer.connection.read(1).bytes
+puts len 
+puts id
 
 
 offset = 0
@@ -28,7 +35,7 @@ data = ""
 puts 'piece length'
 puts my_cli.meta_info["info"]["piece length"]
 
-while offset <=  my_cli.meta_info["info"]["piece length"] - 2**14 
+while offset <=  my_cli.meta_info["info"]["piece length"] - 2**14 && true
   
   #puts data.bytes.length
   msg_length = "\0\0\0\x0d"
@@ -72,6 +79,7 @@ while offset <=  my_cli.meta_info["info"]["piece length"] - 2**14
   puts block_offset
   offset += p_length
 end
+
 
 puts data.length
 puts Digest::SHA1.new.digest(data).bytes
