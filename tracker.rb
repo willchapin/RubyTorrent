@@ -2,7 +2,7 @@ require 'uri'
 
 class Tracker
   
-  attr_accessor :uri, :response 
+  attr_accessor :response 
   
   def initialize(uri_string)
     @uri = URI(uri_string)

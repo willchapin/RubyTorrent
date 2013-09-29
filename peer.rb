@@ -1,13 +1,26 @@
 class Peer
   
-  attr_accessor :connection, :initial_response, :bitfield, :state
+  attr_accessor :connection, :initial_response, :bitfield, :state, :queue
 
   def initialize(ip_string, port, handshake)
-    @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
-    @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
+    set_connection(ip_string, port)
+    set_state
+    set_queue
     greet(handshake)
     set_initial_response
-    @bitfield = set_bitfield
+    set_bitfield
+  end
+  
+  def set_connection(ip_string, port)
+    @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
+  end
+  
+  def set_state
+    @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
+  end
+  
+  def set_queue
+    @queue = Queue.new
   end
   
   def greet(handshake)
@@ -33,8 +46,8 @@ class Peer
     if message_id == 5
       @bitfield = Bitfield.new(@connection.read(length - 1).unpack("B8" * (length - 1)))
     else
-      puts "no bitfield"
-      parse_message(length, message_id)
+      puts "no bitfield!"
+      @bitfield = nil
     end
   end
   

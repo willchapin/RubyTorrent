@@ -1,5 +1,6 @@
 require 'net/http'
 require 'digest/sha1'
+require 'thread'
 require 'ipaddr'
 require 'socket'
 require 'timeout'
@@ -18,7 +19,6 @@ puts my_cli.meta_info["info"]
 
 # the following is a simple download of one piece
 
-interested = "\0\0\0\1\2"
 length = "\0\0\0\1"
 id = "\2"
 peer.connection.write(length + id)
@@ -34,8 +34,9 @@ offset = 0
 data = ""
 puts 'piece length'
 puts my_cli.meta_info["info"]["piece length"]
+puts my_cli.meta_info["info"]["piece length"]
 
-while offset <=  my_cli.meta_info["info"]["piece length"] - 2**14 && true
+while offset <  my_cli.meta_info["info"]["piece length"] && true
   
   #puts data.bytes.length
   msg_length = "\0\0\0\x0d"
@@ -55,7 +56,6 @@ while offset <=  my_cli.meta_info["info"]["piece length"] - 2**14 && true
   request = msg_length + id + piece_index + byte_offset + request_length
   
   puts request.inspect
-  puts offset/(2**14)  
 
   peer.connection.write(request)
   length = peer.connection.read(4)
@@ -75,9 +75,10 @@ while offset <=  my_cli.meta_info["info"]["piece length"] - 2**14 && true
   #puts 'block'
   data << peer.connection.read(p_length)
   #puts 'stop'
-  puts offset
+  puts "offset: " + offset.to_s
   puts block_offset
   offset += p_length
+  #puts "offset!:  " + offset/(2**14).to_s  
 end
 
 
