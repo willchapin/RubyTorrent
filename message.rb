@@ -20,9 +20,11 @@ class Message
       length = peer.connection.read(4).unpack("N")[0]
       id = length.zero? ? "-1" : peer.connection.readbyte.to_s
       payload = has_payload?(id) ? peer.connection.read(length - 1) : nil
-      peer.queue << self.new(length, id, payload)
-      puts peer.queue.inspect
-      puts "\n"
+      
+      ## get rid of temp var
+      message = self.new(length, id, payload)
+      puts message.inspect
+      peer.queue << message
     end
     
   end

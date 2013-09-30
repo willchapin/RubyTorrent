@@ -4,14 +4,15 @@ class Client
 
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
+    @test_block = []
     set_meta_info
     set_tracker
     set_bitfield
     set_handshake
     send_tracker_request
     set_peers
-    #start_peers
-    #join_threads
+    start_peers
+    join_threads
   end
   
   def set_meta_info
@@ -88,16 +89,16 @@ class Client
   end
   
   def run(peer)
+    Thread::abort_on_exception = true # remove later
     # three threads per peer, too many?
     Thread.new { Message.parse_stream(peer) }
-    #send interested message, fix later--------
+    # send interested message, fix later--------
     length = "\0\0\0\1"
     id = "\2"
     peer.connection.write(length + id) 
     ###------------------------------   
     Thread.new { process_queue(peer) }
     Thread.new { request_blocks(peer) }
-    
   end
   
   def request_blocks(peer)
@@ -113,20 +114,22 @@ class Client
       request_length = "\0\0\x40\0"
       request = msg_length + id + piece_index + byte_offset + request_length
       peer.connection.write(request)
-      puts offset
-      puts block_offset
-      offset += p_length
+      puts "before"
+      puts "after"
+      offset += 2**14
     end
+    
   end
   
   def process_queue(peer)
     until download_complete?
       message = peer.queue.pop
-      process_message(message, peer) if message
+      process_message(message, peer)
     end
   end
   
   def process_message(message, peer)
+    puts "message processed"
     case message.id
     when "-1"
       # TODO: keep-alive

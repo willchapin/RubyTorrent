@@ -43,7 +43,7 @@ while offset <  my_cli.meta_info["info"]["piece length"] && true
   id = "\6"
   piece_index = "\0\0\0\0"
   byte_offset = [offset].pack("N")
-  request_length = "\0\0\x40\0"
+  request_length = "\0\0\x40\0" # 16384
   
   #puts byte_offset.inspect
   
@@ -60,10 +60,10 @@ while offset <  my_cli.meta_info["info"]["piece length"] && true
   peer.connection.write(request)
   length = peer.connection.read(4)
   temp = length.unpack("N")[0]
+  puts "piece length: " + temp.to_s
   #break if length == nil || temp == 0
   #puts temp
   #puts 'p_length'
-  puts "temp: " + temp.to_s
   p_length = temp - 9
   #puts p_length
   #puts 'id'
