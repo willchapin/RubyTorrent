@@ -10,7 +10,7 @@ class Download
   end
   
   def set_bitfield(length)
-    @bitfield = "0" * (length)
+    @bitfield = "0" * length
   end
      
   def set_piece_hashes(meta_info)

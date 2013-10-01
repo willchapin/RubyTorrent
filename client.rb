@@ -1,12 +1,12 @@
 class Client
   
-  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers, :download
+  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers
 
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
-    @queue = Queue.new
+    @request_queue = Queue.new
+    @incoming_block_queue = Queue.new
     set_meta_info
-    set_download
     set_tracker
     set_handshake
     send_tracker_request
@@ -17,10 +17,6 @@ class Client
   
   def set_meta_info
     @meta_info ||= BEncode::Parser.new(@torrent).parse!
-  end
-  
-  def set_download
-    @download = Download.new(@meta_info)
   end
   
   def set_tracker
@@ -85,45 +81,46 @@ class Client
   
   def start_peers
     # give each peer a thread later
-    run(@peers.last)
+    run(@peers.first)
   end
   
   def run(peer)
-    Thread::abort_on_exception = true # remove later
-    # three threads per peer, too many?
+    Thread::abort_on_exception = true # remove later?
+    
     Thread.new { Message.parse_stream(peer) }
-    ### send interested message, fix later--------
+    Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue).run! } 
+    send_interested(peer) # change later
+    Thread.new { process_queue(peer) }
+    Thread.new { BlockRequestProcess.new(@request_queue).run! }
+    push_to_request_queue(peer)
+  end
+
+  def push_to_request_queue(peer)
+    piece = 0
+    while piece < @meta_info["info"]["pieces"].length/20 
+      offset = 0
+      while offset <  @meta_info["info"]["piece length"]
+        @request_queue.push({ connection: peer.connection, index: piece, offset: offset })
+        offset += 2**14
+      end
+      piece += 1
+    end
+  end
+  
+  def send_interested(peer)
     length = "\0\0\0\1"
     id = "\2"
     peer.connection.write(length + id) 
-    ###------------------------------   
-    Thread.new { process_queue(peer) }
-    Thread.new do 
-      BlockRequestProcess.new(@queue).run!
-    end
-    push_to_queue(peer)
-  end
-  
-  
-  
-  def push_to_queue(peer)
-    offset = 0
-    while offset <  @meta_info["info"]["piece length"]
-      @queue.push({ connection: peer.connection, index: 1, offset: offset })
-      offset += 2**14
-    end
-    
   end
   
   def process_queue(peer)
-    until false
+    loop do
       message = peer.queue.pop
       process_message(message, peer)
     end
   end
   
   def process_message(message, peer)
-    puts "message processed"
     case message.id
     when "-1"
       # TODO: keep-alive
@@ -142,7 +139,7 @@ class Client
     when "6"
       # TODO: request
     when "7"
-      process_piece(message.payload)
+      push_to_block_queue(message.payload)
     when "8"
       # TODO - Cancel - cancels block requests. Used if the same 
       # block is being downloaded from multiple peers, after block
@@ -152,13 +149,17 @@ class Client
     end
   end
   
-  def process_piece(payload)
+  def push_to_block_queue(payload)
     piece_index, byte_offset, block_data = split_piece_payload(payload)
+    @incoming_block_queue.push({ piece_index: piece_index,
+                                 byte_offset: byte_offset,
+                                 block_data: block_data
+                                 })
   end
   
   def split_piece_payload(payload)
-    piece_index = payload.slice!(0..3).unpack("N")
-    byte_offset = payload.slice!(0..3).unpack("N")
+    piece_index = payload.slice!(0..3).unpack("N")[0]
+    byte_offset = payload.slice!(0..3).unpack("N")[0]
     block_data = payload
     [piece_index, byte_offset, block_data]
   end
