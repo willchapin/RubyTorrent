@@ -6,13 +6,19 @@ require 'socket'
 require 'timeout'
 require_relative 'ruby-bencode/lib/bencode.rb'
 require_relative 'client'
+require_relative 'block_request_process'
 require_relative 'tracker'
 require_relative 'peer'
 require_relative 'bitfield'
 require_relative 'message'
+require_relative 'download'
+require_relative 'piece'
+require_relative 'block'
 
 
 my_cli = Client.new(ARGV.first)
+
+
 peer = my_cli.peers.last
 puts peer
 puts my_cli.meta_info["info"]
@@ -36,7 +42,9 @@ puts 'piece length'
 puts my_cli.meta_info["info"]["piece length"]
 puts my_cli.meta_info["info"]["piece length"]
 
-while offset <  my_cli.meta_info["info"]["piece length"] && true
+piece = Array.new(my_cli.meta_info["info"]["piece length"])
+
+while piece.include?(nil) && true
   
   #puts data.bytes.length
   msg_length = "\0\0\0\x0d"
@@ -74,6 +82,7 @@ while offset <  my_cli.meta_info["info"]["piece length"] && true
   block_offset = peer.connection.read(4).unpack("N")
   #puts 'block'
   data << peer.connection.read(p_length)
+  piece
   #puts 'stop'
   puts "offset: " + offset.to_s
   puts block_offset

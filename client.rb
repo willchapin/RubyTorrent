@@ -1,13 +1,13 @@
 class Client
   
-  attr_accessor :torrent, :meta_info, :tracker, :bitfield, :handshake, :peers, :test_block
+  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers, :download
 
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
-    @test_block = []
+    @queue = Queue.new
     set_meta_info
+    set_download
     set_tracker
-    set_bitfield
     set_handshake
     send_tracker_request
     set_peers
@@ -19,12 +19,12 @@ class Client
     @meta_info ||= BEncode::Parser.new(@torrent).parse!
   end
   
-  def set_tracker
-    @tracker ||= Tracker.new(@meta_info["announce"])
+  def set_download
+    @download = Download.new(@meta_info)
   end
   
-  def set_bitfield
-    @bitfield = "0" * (@meta_info["info"]["pieces"].length/20)
+  def set_tracker
+    @tracker ||= Tracker.new(@meta_info["announce"])
   end
   
   def set_handshake
@@ -58,7 +58,7 @@ class Client
     
     peers.each do |ip_string, port| 
       begin
-        Timeout::timeout(2) do 
+        Timeout::timeout(1) do 
           @peers << Peer.new(ip_string, port, @handshake)
         end
       rescue => exception
@@ -92,37 +92,31 @@ class Client
     Thread::abort_on_exception = true # remove later
     # three threads per peer, too many?
     Thread.new { Message.parse_stream(peer) }
-    # send interested message, fix later--------
+    ### send interested message, fix later--------
     length = "\0\0\0\1"
     id = "\2"
     peer.connection.write(length + id) 
     ###------------------------------   
     Thread.new { process_queue(peer) }
-    Thread.new { request_blocks(peer) }
+    Thread.new do 
+      BlockRequestProcess.new(@queue).run!
+    end
+    push_to_queue(peer)
   end
   
-  def request_blocks(peer)
-    
+  
+  
+  def push_to_queue(peer)
     offset = 0
-    data = ""
-
-    while offset <  @meta_info["info"]["piece length"] && true
-      msg_length = "\0\0\0\x0d"
-      id = "\6"
-      piece_index = "\0\0\0\0"
-      byte_offset = [offset].pack("N")
-      request_length = "\0\0\x40\0"
-      request = msg_length + id + piece_index + byte_offset + request_length
-      peer.connection.write(request)
-      puts "before"
-      puts "after"
+    while offset <  @meta_info["info"]["piece length"]
+      @queue.push({ connection: peer.connection, index: 1, offset: offset })
       offset += 2**14
     end
     
   end
   
   def process_queue(peer)
-    until download_complete?
+    until false
       message = peer.queue.pop
       process_message(message, peer)
     end
@@ -167,7 +161,6 @@ class Client
     byte_offset = payload.slice!(0..3).unpack("N")
     block_data = payload
     [piece_index, byte_offset, block_data]
-    @test_block << block_data
   end
   
   def download_complete?
