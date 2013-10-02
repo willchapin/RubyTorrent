@@ -1,6 +1,5 @@
 class DownloadController
   
-  
   def initialize(meta_info, block_request_queue, incoming_block_queue)
     @meta_info = meta_info
     @bitfield = "0" * (@meta_info["info"]["pieces"].length/20)
@@ -32,12 +31,9 @@ class DownloadController
     piece.write_block(block)
     if piece.is_complete?
       if piece.is_verified?
-        puts "piece #{piece.index} has been downloaded and verified"
-        puts "it's #{piece.size} bytes long" 
-        Client.broadcast_have(piece.index)
+        puts "piece #{piece.index}, (#{piece.size} bytes) has been downloaded and verified"
       end
     end
- 
   end
   
   def new_piece?(block)

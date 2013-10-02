@@ -1,7 +1,8 @@
 class Client
   
-  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers
+  BLOCK_SIZE = 2**14
 
+  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
     @request_queue = Queue.new
@@ -85,51 +86,59 @@ class Client
   
   def run(peer)
     Thread::abort_on_exception = true # remove later?
-    
     Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue).run! } 
-    send_interested(peer) # change later
-    Thread.new { process_queue(peer) }
     Thread.new { BlockRequestProcess.new(@request_queue).run! }
     Thread.new { Message.parse_stream(peer) }
+    Thread.new { process_queue(peer) }
+    Thread.new { keep_alive(peer) }
+    send_interested(peer) # change later
 
-    Thread.new do
-      loop do
-        send_keep_alive(peer)
-        sleep(10)
-      end
-    end 
     push_to_request_queue(peer)
   end
   
+  
+  ## refactor this!!!
   def push_to_request_queue(peer)
-    num_pieces = @meta_info["info"]["pieces"].length/20
-    file_size = @meta_info["info"]["length"]
-    piece_size = @meta_info["info"]["piece length"]
-    block_size = 2**14
-    
-    puts "num pieces: " + num_pieces.to_s 
-    puts "piece_length: " + piece_size.to_s
-    num_full_blocks = file_size/block_size
-    puts "num_full_blocks: " + num_full_blocks.to_s
-    rem = file_size.remainder(block_size)
-    puts "rem: " + rem.to_s
+            
     piece = 0
     total_blocks = 0
     
-    while piece < num_pieces
+    while piece < get_num_pieces
       offset = 0
-      while offset < piece_size
-        puts "total_blocks: " + total_blocks.to_s
-        if total_blocks == num_full_blocks
-          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: rem })
+      while offset < get_piece_size
+        if is_last_block?(total_blocks)
+          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: get_last_block_size })
         else
-          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: 2**14 })
+          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: BLOCK_SIZE })
         end
         total_blocks += 1
         offset += 2**14
       end
       piece += 1
     end
+  end
+  
+  def get_piece_size
+    @meta_info["info"]["piece length"]
+  end
+  
+  def get_num_pieces
+    @meta_info["info"]["pieces"].length/20
+  end
+  
+  def get_last_block_size
+    get_file_size.remainder(BLOCK_SIZE)
+  end
+  def is_last_block?(total_blocks)
+    total_blocks == get_num_full_blocks
+  end
+  
+  def get_num_full_blocks
+    get_file_size/BLOCK_SIZE
+  end
+  
+  def get_file_size
+    @meta_info["info"]["length"]
   end
   
   def send_interested(peer)
@@ -172,7 +181,7 @@ class Client
       # TODO: request
       puts "request"
     when "7"
-      puts message.print
+      puts "block: " + message.print
       push_to_block_queue(message.payload)
     when "8"
       puts "cancel"
@@ -208,16 +217,14 @@ class Client
     Thread.list.each { |thread| thread.join unless current_thread?(thread) }
   end
   
-  def send_keep_alive(peer)
-    peer.connection.write("\0\0\0\0")
-    puts "running!"
+  def keep_alive(peer)
+    loop do
+      peer.connection.write("\0\0\0\0")
+      sleep(60)
+    end
   end
   
   def current_thread?(thread)
     thread == Thread.current
-  end
-  
-  def self.broadcast_have(piece_index)
-    
   end
 end
