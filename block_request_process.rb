@@ -17,7 +17,7 @@ class BlockRequestProcess
       id = "\6"
       piece_index = [request[:index]].pack("N")
       byte_offset = [request[:offset]].pack("N")
-      request_length = "\0\0\x40\0"
+      request_length = [request[:size]].pack("N")
       msg_length + id + piece_index + byte_offset + request_length
   end
 

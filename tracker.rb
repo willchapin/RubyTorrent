@@ -11,7 +11,9 @@ class Tracker
   def make_request(params)
     request = @uri
     request.query = URI.encode_www_form(params)
-    @response = BEncode.load(Net::HTTP.get_response(request).body)
+    temp = Net::HTTP.get_response(request).body
+    puts temp
+    @response = BEncode.load(temp)
     
   end
 

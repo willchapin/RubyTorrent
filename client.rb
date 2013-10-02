@@ -39,7 +39,7 @@ class Client
       uploaded:     '0',
       downloaded:   '0',
       left:         '10000',
-      compact:      '0',
+      compact:      '1',
       no_peer_id:   '0',
       event:        'started' }
   end
@@ -71,8 +71,7 @@ class Client
   def rand_id
     result = []
     20.times { result << rand(9) }
-    result = result.join("")
-    result
+    result.join("")
   end
   
   def get_info_hash
@@ -80,27 +79,53 @@ class Client
   end
   
   def start_peers
-    # give each peer a thread later
-    run(@peers.first)
+    # run each peer later
+    run(@peers.last)
   end
   
   def run(peer)
     Thread::abort_on_exception = true # remove later?
     
-    Thread.new { Message.parse_stream(peer) }
     Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue).run! } 
     send_interested(peer) # change later
     Thread.new { process_queue(peer) }
     Thread.new { BlockRequestProcess.new(@request_queue).run! }
+    Thread.new { Message.parse_stream(peer) }
+
+    Thread.new do
+      loop do
+        send_keep_alive(peer)
+        sleep(10)
+      end
+    end 
     push_to_request_queue(peer)
   end
-
+  
   def push_to_request_queue(peer)
+    num_pieces = @meta_info["info"]["pieces"].length/20
+    file_size = @meta_info["info"]["length"]
+    piece_size = @meta_info["info"]["piece length"]
+    block_size = 2**14
+    
+    puts "num pieces: " + num_pieces.to_s 
+    puts "piece_length: " + piece_size.to_s
+    num_full_blocks = file_size/block_size
+    puts "num_full_blocks: " + num_full_blocks.to_s
+    rem = file_size.remainder(block_size)
+    puts "rem: " + rem.to_s
     piece = 0
-    while piece < @meta_info["info"]["pieces"].length/20 
+    total_blocks = 0
+    
+    while piece < num_pieces
       offset = 0
-      while offset <  @meta_info["info"]["piece length"]
-        @request_queue.push({ connection: peer.connection, index: piece, offset: offset })
+      while offset < piece_size
+        puts "total_blocks: " + total_blocks.to_s
+        if total_blocks == num_full_blocks
+          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: rem })
+        else
+          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: 2**14 })
+        end
+        total_blocks += 1
         offset += 2**14
       end
       piece += 1
@@ -124,27 +149,38 @@ class Client
     case message.id
     when "-1"
       # TODO: keep-alive
+      puts "keep alive!"
     when "0"
       peer.state[:is_choking] = true
+      puts "is chokeing"
     when "1"
       peer.state[:is_choking] = false
+      puts "not choking"
     when "2"
       peer.state[:is_interested] = false
+      puts "is not interested"
     when "3"
       peer.state[:is_interested] = true
+      puts "is interested"
     when "4"
       # TODO: have message
+      puts "have"
     when "5"
       # bitfield - currently handled in peer initialization
+      puts "bitfield"
     when "6"
       # TODO: request
+      puts "request"
     when "7"
+      puts message.print
       push_to_block_queue(message.payload)
     when "8"
+      puts "cancel"
       # TODO - Cancel - cancels block requests. Used if the same 
       # block is being downloaded from multiple peers, after block
       # is successfully downloaded, cancel transfers from other peers
     when "9"
+      puts "port"
       # Port - enable for DTH tracker
     end
   end
@@ -172,7 +208,16 @@ class Client
     Thread.list.each { |thread| thread.join unless current_thread?(thread) }
   end
   
+  def send_keep_alive(peer)
+    peer.connection.write("\0\0\0\0")
+    puts "running!"
+  end
+  
   def current_thread?(thread)
     thread == Thread.current
+  end
+  
+  def self.broadcast_have(piece_index)
+    
   end
 end
