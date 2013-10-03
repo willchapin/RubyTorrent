@@ -15,4 +15,4 @@ require_relative 'message'
 require_relative 'piece'
 require_relative 'block'
 
-my_cli = Client.new(ARGV.first)
+Client.new(ARGV.first)

@@ -1,7 +1,7 @@
 class BlockRequestProcess
 
-  def initialize(queue)
-    @queue = queue
+  def initialize(block_request_queue)
+    @queue = block_request_queue
   end
   
   def run!

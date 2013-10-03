@@ -92,7 +92,6 @@ class Client
     Thread.new { process_queue(peer) }
     Thread.new { keep_alive(peer) }
     send_interested(peer) # change later
-
     push_to_request_queue(peer)
   end
   
@@ -129,6 +128,7 @@ class Client
   def get_last_block_size
     get_file_size.remainder(BLOCK_SIZE)
   end
+  
   def is_last_block?(total_blocks)
     total_blocks == get_num_full_blocks
   end
