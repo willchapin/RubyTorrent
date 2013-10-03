@@ -14,7 +14,6 @@ class Tracker
     temp = Net::HTTP.get_response(request).body
     puts temp
     @response = BEncode.load(temp)
-    
   end
 
 end

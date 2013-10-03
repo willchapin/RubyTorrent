@@ -1,7 +1,5 @@
 class Client
-  
-  BLOCK_SIZE = 2**14
-  
+    
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
     set_instance_variables
@@ -16,6 +14,7 @@ class Client
     @request_queue = Queue.new
     @incoming_block_queue = Queue.new
     @meta_info = BEncode::Parser.new(@torrent).parse!
+    puts @meta_info["info"]
     @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
     @id = rand_id # make better later
     @tracker = Tracker.new(@meta_info["announce"])
@@ -67,69 +66,18 @@ class Client
   def run
     peer = @peers.last
     Thread::abort_on_exception = true # remove later?
-    Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue).run! } 
+    Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue, @peers).run! } 
     Thread.new { Message.parse_stream(peer, @message_queue) }
-    Thread.new { IncomingRequestProcess.new(@message_queue, @incoming_block_queue).run! } 
+    Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue).run! } 
     Thread.new { BlockRequestProcess.new(@request_queue).run! }
     Thread.new { keep_alive(peer) }
     send_interested(peer) # change later
-    push_to_request_queue(peer)
-  end
-  
-  
-  ## refactor this!!!
-  def push_to_request_queue(peer)
-            
-    piece = 0
-    total_blocks = 0
-    
-    while piece < get_num_pieces
-      offset = 0
-      while offset < get_piece_size
-        if is_last_block?(total_blocks)
-          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: get_last_block_size })
-        else
-          @request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: BLOCK_SIZE })
-        end
-        total_blocks += 1
-        offset += 2**14
-      end
-      piece += 1
-    end
-  end
-  
-  def get_piece_size
-    @meta_info["info"]["piece length"]
-  end
-  
-  def get_num_pieces
-    @meta_info["info"]["pieces"].length/20
-  end
-  
-  def get_last_block_size
-    get_file_size.remainder(BLOCK_SIZE)
-  end
-  
-  def is_last_block?(total_blocks)
-    total_blocks == get_num_full_blocks
-  end
-  
-  def get_num_full_blocks
-    get_file_size/BLOCK_SIZE
-  end
-  
-  def get_file_size
-    @meta_info["info"]["length"]
   end
   
   def send_interested(peer)
     length = "\0\0\0\1"
     id = "\2"
     peer.connection.write(length + id) 
-  end
-  
-  def download_complete?
-    !@bitfield.include?("0")
   end
   
   def join_threads
