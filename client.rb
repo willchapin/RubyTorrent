@@ -1,33 +1,25 @@
 class Client
   
   BLOCK_SIZE = 2**14
-
-  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers, :message_queue
   
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
-    @message_queue = Queue.new
-    @request_queue = Queue.new
-    @incoming_block_queue = Queue.new
-    set_meta_info
-    set_tracker
-    set_handshake
+    set_instance_variables
     send_tracker_request
     set_peers
-    start_peers
+    run
     join_threads
   end
   
-  def set_meta_info
-    @meta_info ||= BEncode::Parser.new(@torrent).parse!
-  end
-  
-  def set_tracker
-    @tracker ||= Tracker.new(@meta_info["announce"])
-  end
-  
-  def set_handshake
-    @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{get_info_hash}#{get_id}"
+  def set_instance_variables
+    @message_queue = Queue.new
+    @request_queue = Queue.new
+    @incoming_block_queue = Queue.new
+    @meta_info = BEncode::Parser.new(@torrent).parse!
+    @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
+    @id = rand_id # make better later
+    @tracker = Tracker.new(@meta_info["announce"])
+    @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@info_hash}#{@id}"
   end
   
   def send_tracker_request
@@ -35,8 +27,7 @@ class Client
   end
   
   def get_tracker_request_params
-    params = {
-      info_hash:    get_info_hash,          
+    { info_hash:    @info_hash,          
       peer_id:      rand_id,
       port:         '6881',
       uploaded:     '0',
@@ -66,27 +57,15 @@ class Client
       end
     end
   end
-  
-  def get_id
-    @id ||= rand_id
-  end
 
   def rand_id
-    result = []
-    20.times { result << rand(9) }
-    result.join("")
+    result = ''
+    20.times { result << rand(9).to_s }
+    result
   end
-  
-  def get_info_hash
-    @info_hash ||= Digest::SHA1.new.digest(@meta_info['info'].bencode)
-  end
-  
-  def start_peers
-    # run each peer later
-    run(@peers.last)
-  end
-  
-  def run(peer)
+
+  def run
+    peer = @peers.last
     Thread::abort_on_exception = true # remove later?
     Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue).run! } 
     Thread.new { Message.parse_stream(peer, @message_queue) }
