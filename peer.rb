@@ -1,11 +1,10 @@
 class Peer
   
-  attr_accessor :connection, :initial_response, :bitfield, :state, :queue
+  attr_accessor :connection, :initial_response, :bitfield, :state
 
   def initialize(ip_string, port, handshake)
     set_connection(ip_string, port)
     set_state
-    set_queue
     greet(handshake)
     set_initial_response
     set_bitfield
@@ -17,10 +16,6 @@ class Peer
   
   def set_state
     @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
-  end
-  
-  def set_queue
-    @queue = Queue.new
   end
   
   def greet(handshake)
