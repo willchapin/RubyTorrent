@@ -13,7 +13,7 @@ class DownloadController
   end
   
   def run!
-    Thread.new { FileWriterProcess.new(@pieces_to_write, get_file_size).run } 
+    Thread.new { FileWriterProcess.new(@pieces_to_write).run! } 
     Thread.new { push_to_block_request_queue }
     Thread.new { loop { process_block(@incoming_block_queue.pop) } }        
   end
@@ -69,7 +69,8 @@ class DownloadController
     hash_end_index = hash_begin_index + 20
     @pieces << Piece.new(size,
                          block[:piece_index],
-                         @meta_info["info"]["pieces"][hash_begin_index...hash_end_index])
+                         @meta_info["info"]["pieces"][hash_begin_index...hash_end_index],
+                         @meta_info["info"]["piece length"])
   end
   
   def get_piece_size
