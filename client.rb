@@ -2,9 +2,10 @@ class Client
   
   BLOCK_SIZE = 2**14
 
-  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers
+  attr_accessor :torrent, :meta_info, :tracker, :handshake, :peers, :message_queue
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
+    @message_queue = Queue.new
     @request_queue = Queue.new
     @incoming_block_queue = Queue.new
     set_meta_info
@@ -88,8 +89,8 @@ class Client
     Thread::abort_on_exception = true # remove later?
     Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue).run! } 
     Thread.new { BlockRequestProcess.new(@request_queue).run! }
-    Thread.new { Message.parse_stream(peer) }
-    Thread.new { process_queue(peer) }
+    Thread.new { Message.parse_stream(peer, @message_queue) }
+    Thread.new { process_queue }
     Thread.new { keep_alive(peer) }
     send_interested(peer) # change later
     push_to_request_queue(peer)
@@ -147,29 +148,29 @@ class Client
     peer.connection.write(length + id) 
   end
   
-  def process_queue(peer)
+  def process_queue
     loop do
-      message = peer.queue.pop
-      process_message(message, peer)
+      message = @message_queue.pop
+      process_message(message)
     end
   end
   
-  def process_message(message, peer)
+  def process_message(message)
     case message.id
     when "-1"
       # TODO: keep-alive
       puts "keep alive!"
     when "0"
-      peer.state[:is_choking] = true
+      message.peer.state[:is_choking] = true
       puts "is chokeing"
     when "1"
-      peer.state[:is_choking] = false
+      message.peer.state[:is_choking] = false
       puts "not choking"
     when "2"
-      peer.state[:is_interested] = false
+      message.peer.state[:is_interested] = false
       puts "is not interested"
     when "3"
-      peer.state[:is_interested] = true
+      message.peer.state[:is_interested] = true
       puts "is interested"
     when "4"
       # TODO: have message
