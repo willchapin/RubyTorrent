@@ -14,6 +14,7 @@ class Peer
     @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
   end
   
+  #remove method or remove :state from attr_accessor
   def set_state
     @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
   end

@@ -28,4 +28,10 @@ class Message
         message_queue << self.new(peer, length, id, payload)
     end
   end
+  
+  def self.send_interested(peer)
+    length = "\0\0\0\1"
+    id = "\2"
+    peer.connection.write(length + id) 
+  end
 end

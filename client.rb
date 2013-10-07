@@ -71,13 +71,7 @@ class Client
     Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue).run! } 
     Thread.new { BlockRequestProcess.new(@request_queue).run! }
     Thread.new { keep_alive(peer) }
-    send_interested(peer) # change later
-  end
-  
-  def send_interested(peer)
-    length = "\0\0\0\1"
-    id = "\2"
-    peer.connection.write(length + id) 
+    Message.send_interested(peer) # change later
   end
   
   def join_threads

@@ -48,7 +48,7 @@ class DownloadController
     
     if piece.is_complete?
       if piece.is_verified?
-        puts "piece #{piece.index}, (#{piece.size} bytes) has been downloaded and verified"
+        puts "piece #{piece.index} (#{piece.size} bytes) has been downloaded and verified"
         @pieces_to_write.push(piece)
       end
     end
