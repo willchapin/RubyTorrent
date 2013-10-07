@@ -4,7 +4,7 @@ class DownloadController
   
   def initialize(meta_info, block_request_queue, incoming_block_queue, peers)
     @meta_info = meta_info
-    @bitfield = "0" * (@meta_info["info"]["pieces"].length/20)
+    @bitfield = "0" * (@meta_info.number_of_pieces)
     @pieces = []
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
@@ -13,7 +13,7 @@ class DownloadController
   end
   
   def run!
-    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info["info"]["name"] ).run! } 
+    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info.file_name ).run! } 
     Thread.new { push_to_block_request_queue }
     Thread.new { loop { process_block(@incoming_block_queue.pop) } }        
   end
@@ -22,7 +22,7 @@ class DownloadController
     piece = 0
     total_blocks = 0
     peer = @peers.last
-    while piece < get_num_pieces
+    while piece < @meta_info.number_of_pieces
       offset = 0
       while offset < get_piece_size
         if is_last_block?(total_blocks)
@@ -60,25 +60,21 @@ class DownloadController
 
   def make_new_piece(block)
         
-    if block[:piece_index] == get_num_pieces - 1
+    if block[:piece_index] == @meta_info.number_of_pieces - 1
       size = get_last_piece_size
     else
-      size = @meta_info["info"]["piece length"]
+      size = @meta_info.piece_length
     end
     hash_begin_index = block[:piece_index] * 20
     hash_end_index = hash_begin_index + 20
     @pieces << Piece.new(size,
                          block[:piece_index],
-                         @meta_info["info"]["pieces"][hash_begin_index...hash_end_index],
-                         @meta_info["info"]["piece length"])
+                         @meta_info.pieces_hash[hash_begin_index...hash_end_index],
+                         @meta_info.piece_length)
   end
   
   def get_piece_size
-    @meta_info["info"]["piece length"]
-  end
-  
-  def get_num_pieces
-    @meta_info["info"]["pieces"].length/20
+    @meta_info.piece_length
   end
   
   def get_last_block_size
@@ -94,11 +90,11 @@ class DownloadController
   end
   
   def get_file_size
-    @meta_info["info"]["length"]
+    @meta_info.file_size
   end
   
   def get_last_piece_size 
-    get_file_size - (get_piece_size * (get_num_pieces - 1))
+    get_file_size - (get_piece_size * (@meta_info.number_of_pieces - 1))
   end
 end
 

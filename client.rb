@@ -13,14 +13,10 @@ class Client
     @message_queue = Queue.new
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
-    @meta_info = BEncode::Parser.new(@torrent).parse!
-    if @meta_info["info"]["files"]
-      puts "multi"
-    end
-    @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
+    @meta_info = MetaInfo.new(BEncode::Parser.new(@torrent).parse!)
     @id = rand_id # make better later
-    @tracker = Tracker.new(@meta_info["announce"])
-    @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@info_hash}#{@id}"
+    @tracker = Tracker.new(@meta_info.announce)
+    @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@meta_info.info_hash}#{@id}"
   end
   
   def send_tracker_request
@@ -28,7 +24,7 @@ class Client
   end
   
   def get_tracker_request_params
-    { info_hash:    @info_hash,          
+    { info_hash:    @meta_info.info_hash,          
       peer_id:      rand_id,
       port:         '6881',
       uploaded:     '0',
@@ -42,7 +38,6 @@ class Client
   def set_peers
     @peers ||= []
     peers = @tracker.response["peers"].scan(/.{6}/)
-    
     peers.map! do |peer|
       peer.unpack('a4n')
     end
@@ -65,7 +60,7 @@ class Client
   end
 
   def run
-    peer = @peers.first
+    peer = @peers.last
     Thread::abort_on_exception = true # remove later?
     Thread.new { DownloadController.new(@meta_info, @block_request_queue, @incoming_block_queue, @peers).run! } 
     Thread.new { Message.parse_stream(peer, @message_queue) }
