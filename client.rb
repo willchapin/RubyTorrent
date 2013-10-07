@@ -14,6 +14,9 @@ class Client
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
     @meta_info = BEncode::Parser.new(@torrent).parse!
+    if @meta_info["info"]["files"]
+      puts "multi"
+    end
     @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
     @id = rand_id # make better later
     @tracker = Tracker.new(@meta_info["announce"])
@@ -50,20 +53,19 @@ class Client
           @peers << Peer.new(ip_string, port, @handshake)
         end
       rescue => exception
-       # puts exception.backtrace
         puts exception
       end
     end
   end
 
   def rand_id
-    result = ''
+    result = ""
     20.times { result << rand(9).to_s }
     result
   end
 
   def run
-    peer = @peers.last
+    peer = @peers.first
     Thread::abort_on_exception = true # remove later?
     Thread.new { DownloadController.new(@meta_info, @block_request_queue, @incoming_block_queue, @peers).run! } 
     Thread.new { Message.parse_stream(peer, @message_queue) }
