@@ -11,7 +11,7 @@ class Client
   
   def set_instance_variables
     @message_queue = Queue.new
-    @request_queue = Queue.new
+    @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
     @meta_info = BEncode::Parser.new(@torrent).parse!
     puts @meta_info["info"]
@@ -66,10 +66,10 @@ class Client
   def run
     peer = @peers.last
     Thread::abort_on_exception = true # remove later?
-    Thread.new { DownloadController.new(@meta_info, @request_queue, @incoming_block_queue, @peers).run! } 
+    Thread.new { DownloadController.new(@meta_info, @block_request_queue, @incoming_block_queue, @peers).run! } 
     Thread.new { Message.parse_stream(peer, @message_queue) }
     Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue).run! } 
-    Thread.new { BlockRequestProcess.new(@request_queue).run! }
+    Thread.new { BlockRequestProcess.new(@block_request_queue).run! }
     Thread.new { keep_alive(peer) }
     Message.send_interested(peer) # change later
   end
