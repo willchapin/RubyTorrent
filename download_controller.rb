@@ -13,7 +13,7 @@ class DownloadController
   end
   
   def run!
-    Thread.new { FileWriterProcess.new(@pieces_to_write).run! } 
+    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info["info"]["name"] ).run! } 
     Thread.new { push_to_block_request_queue }
     Thread.new { loop { process_block(@incoming_block_queue.pop) } }        
   end

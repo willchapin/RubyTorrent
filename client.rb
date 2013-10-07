@@ -14,7 +14,6 @@ class Client
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
     @meta_info = BEncode::Parser.new(@torrent).parse!
-    puts @meta_info["info"]
     @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
     @id = rand_id # make better later
     @tracker = Tracker.new(@meta_info["announce"])
