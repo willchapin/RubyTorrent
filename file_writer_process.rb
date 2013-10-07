@@ -1,14 +1,14 @@
 class FileWriterProcess
 
-  def initialize(piece_to_write_queue, file_name)
+  def initialize(piece_to_write_queue, files)
     @queue = piece_to_write_queue
-    @file_name = file_name
+    @files = files
     @file = set_file 
   end
   
   def set_file
-    File.new("downloads/" + @file_name, "w+")
-    File.open("downloads/" + @file_name, "r+")
+    File.new("downloads/" + @files[0][:name], "w+")
+    File.open("downloads/" + @files[0][:name], "r+")
   end
   
   def run!

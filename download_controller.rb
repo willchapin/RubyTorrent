@@ -13,28 +13,41 @@ class DownloadController
   end
   
   def run!
-    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info.file_name ).run! } 
+    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info.files).run! } 
     Thread.new { push_to_block_request_queue }
     Thread.new { loop { process_block(@incoming_block_queue.pop) } }        
   end
   
   def push_to_block_request_queue
     piece = 0
-    total_blocks = 0
+    block_count = 0
     peer = @peers.last
-    while piece < @meta_info.number_of_pieces
+    
+    puts "num of pieces: " + @meta_info.number_of_pieces.to_s
+    puts "piece size: " +  get_piece_size.to_s
+    puts "total_size: " + @meta_info.total_size.to_s
+
+
+    #for the love of god refactor
+    loop do 
       offset = 0
       while offset < get_piece_size
-        if is_last_block?(total_blocks)
+        if is_last_block?(block_count)
+          puts "hey!"
+          puts "\n" * 5
           @block_request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: get_last_block_size })
+          break
         else
           @block_request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: BLOCK_SIZE })
+          block_count += 1
+          offset += BLOCK_SIZE
         end
-        total_blocks += 1
-        offset += BLOCK_SIZE
       end
       piece += 1
-    end
+      break if is_last_block?(block_count)
+    end  
+    
+    
   end
   
   def process_block(block)
@@ -86,11 +99,11 @@ class DownloadController
   end
   
   def get_num_full_blocks
-    get_file_size/BLOCK_SIZE
+    @meta_info.total_size/BLOCK_SIZE
   end
   
   def get_file_size
-    @meta_info.file_size
+    @meta_info.total_size
   end
   
   def get_last_piece_size 
