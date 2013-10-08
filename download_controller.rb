@@ -13,7 +13,7 @@ class DownloadController
   end
   
   def run!
-    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info.files).run! } 
+    Thread.new { FileWriterProcess.new(@pieces_to_write, @meta_info.files, @meta_info.folder).run! } 
     Thread.new { push_to_block_request_queue }
     Thread.new { loop { process_block(@incoming_block_queue.pop) } }        
   end
@@ -23,32 +23,40 @@ class DownloadController
     block_count = 0
     peer = @peers.last
     
-    puts "num of pieces: " + @meta_info.number_of_pieces.to_s
-    puts "piece size: " +  get_piece_size.to_s
-    puts "total_size: " + @meta_info.total_size.to_s
+    puts BLOCK_SIZE
+    puts get_piece_size
 
-
-    #for the love of god refactor
-    loop do 
-      offset = 0
-      while offset < get_piece_size
-        if is_last_block?(block_count)
-          puts "hey!"
-          puts "\n" * 5
-          @block_request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: get_last_block_size })
-          break
-        else
-          @block_request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: BLOCK_SIZE })
-          block_count += 1
-          offset += BLOCK_SIZE
-        end
-      end
-      piece += 1
-      break if is_last_block?(block_count)
-    end  
+    # for the love of god refactor
     
     
-  end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#   while !is_last_block?(block_count)
+#     offset = 0
+#     while offset < get_piece_size && !is_last_block?(block_count)
+#       @block_request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: BLOCK_SIZE })
+#       block_count += 1
+#       offset += BLOCK_SIZE
+#     end
+#     if is_last_block?(block_count)
+#       puts "HHHHHHHHHHHHHH"
+#       @block_request_queue.push({ connection: peer.connection, index: piece, offset: offset, size: get_last_block_size })
+#       break
+#     end
+#     piece += 1
+#   end 
+# end
   
   def process_block(block)
     
@@ -78,6 +86,7 @@ class DownloadController
     else
       size = @meta_info.piece_length
     end
+    
     hash_begin_index = block[:piece_index] * 20
     hash_end_index = hash_begin_index + 20
     @pieces << Piece.new(size,

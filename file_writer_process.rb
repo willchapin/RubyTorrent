@@ -1,14 +1,25 @@
 class FileWriterProcess
 
-  def initialize(piece_to_write_queue, files)
+  def initialize(piece_to_write_queue, file_paths, folder)
     @queue = piece_to_write_queue
-    @files = files
-    @file = set_file 
+    @folder = folder
+    @file_paths = file_paths
+    @files = []
+    initialize_files 
   end
   
-  def set_file
-    File.new("downloads/" + @files[0][:name], "w+")
-    File.open("downloads/" + @files[0][:name], "r+")
+  def initialize_files    
+    
+    if @folder
+      Dir.mkdir("downloads/" + @folder)
+      @file_paths.each do |path|
+        File.new("downloads/" + @folder + "/" + path[:name], "w+")
+        @files << File.open("downloads/" + @folder + "/" + path[:name], "r+")
+      end
+    else
+      File.new("downloads/" + @file_paths.first[:name], "w+")
+      @files << File.open("downloads/" + @file_paths.first[:name], "r+")
+    end
   end
   
   def run!
@@ -16,7 +27,10 @@ class FileWriterProcess
   end
    
   def write_to_file(piece)
-    @file.seek(piece.byte_offset_in_file)
-    @file.write(piece.a_to_s)
+    @files[0].seek(piece.byte_offset_in_file)
+    @files[0].write(piece.a_to_s)
   end
 end
+
+
+#commit 'modify to separate files correctly'

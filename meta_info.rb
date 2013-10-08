@@ -26,7 +26,7 @@ class MetaInfo
   end
   
   def set_folder
-    @folder = is_single_file? ? nil : @meta_info["info"]["title"]
+    @folder = is_single_file? ? nil : @meta_info["info"]["name"]
   end
   
   def set_files
