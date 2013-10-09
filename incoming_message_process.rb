@@ -54,10 +54,7 @@ class IncomingMessageProcess
   
   def push_to_block_queue(payload)
     piece_index, byte_offset, block_data = split_piece_payload(payload)
-    @incoming_block_queue.push({ piece_index: piece_index,
-                                 byte_offset: byte_offset,
-                                 block_data: block_data
-                                 })
+    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data))
   end
   
   def split_piece_payload(payload)

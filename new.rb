@@ -8,6 +8,7 @@ require 'pp'
 
 require_relative 'ruby-bencode/lib/bencode.rb'
 require_relative 'client'
+require_relative 'block'
 require_relative 'meta_info'
 require_relative 'download_controller'
 require_relative 'file_writer_process'

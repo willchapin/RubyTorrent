@@ -38,7 +38,7 @@ class MetaInfo
     else
       @meta_info["info"]["files"].inject(0) do |start_byte, file| 
         @files << { name:       file["path"][0],
-                    length:     file["length"][0],
+                    length:     file["length"],
                     start_byte: start_byte }
         start_byte + file["length"]
       end

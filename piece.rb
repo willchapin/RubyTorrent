@@ -11,9 +11,9 @@ class Piece
   end
   
   def write_block(block)
-    begin_index = block[:byte_offset]
-    end_index = begin_index + block[:block_data].length
-    @byte_array[begin_index...end_index] = block[:block_data].split("")
+    begin_index = block.offset_in_piece
+    end_index = begin_index + block.data.length
+    @byte_array[begin_index...end_index] = block.data.split("")
   end
   
   def is_complete?
