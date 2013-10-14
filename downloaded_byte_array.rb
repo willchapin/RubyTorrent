@@ -2,57 +2,60 @@ class DownloadedByteArray
 
   def initialize(meta_info)
     @length = meta_info.total_size
-    @sparse_bytes = Array.new([[0, @length - 1, false]])
+    @byte_table = Array.new([[0, @length - 1, false]])
   end
 
   def have_all(start, fin)
     check_range(start,fin)
-    start_index, end_index = nil
-    @sparse_bytes.each_with_index do |element, index|
-      start_index = index if start.between?(element[0],element[1])
-      end_index = index if fin.between?(element[0],element[1])
-    end
-
+    start_item, end_item = get_boundry_items
     first, second, third = nil
 
-    if @sparse_bytes[start_index][2] and @sparse_bytes[end_index][2]
-      first = [@sparse_bytes[start_index][0], @sparse_bytes[end_index][1], true]
-    elsif @sparse_bytes[start_index][2]
-      first = [@sparse_bytes[start_index][0], fin, @sparse_bytes[start_index][2]]
-      second = [fin + 1, @sparse_bytes[end_index][1], @sparse_bytes[end_index][2]]
-    elsif @sparse_bytes[end_index][2]
-      first = [@sparse_bytes[start_index][0], start - 1, @sparse_bytes[start_index][2]]
-      second = [start, @sparse_bytes[end_index][1], true]
+    if start_item[2] and end_item[2]
+      first = [start_item[0], end_item[1], true]
+    elsif start_item[2]
+      first = [start_item[0], fin, start_item[2]]
+      second = [fin + 1, end_item[1], end_item[2]]
+    elsif end_item[2]
+      first = [start_item[0], start - 1, start_item[2]]
+      second = [start, end_item[1], true]
     else
-      first = [@sparse_bytes[start_index][0], start - 1, @sparse_bytes[start_index][2]]
+      first = [start_item[0], start - 1, start_item[2]]
       second = [start, fin, true]
-      third = [fin + 1, @sparse_bytes[end_index][1], @sparse_bytes[end_index][2]]
+      third = [fin + 1, end_item[1], end_item[2]]
     end
 
     first = nil if start == 0
     third = nil if fin == @length - 1
 
-    @sparse_bytes[start_index..end_index] = [first, second, third].compact
-    @sparse_bytes
+    @byte_table[start_index..end_index] = [first, second, third].compact
+    @byte_table
+  end
+
+  def get_boundry_items
+    start_item, end_item = nil
+    @byte_table.each_with_index do |element, index|
+      start_item = @byte_table[index] if start.between?(element[0],element[1])
+      end_item = @byte_table[index] if fin.between?(element[0],element[1])
+    end
+    [start_item, end_item]
   end
 
   def have_all?(start, fin)
     check_range(start, fin)
-    result = true
-    @sparse_bytes.each do |i, j, bool|
+    @byte_table.each do |i, j, bool|
       unless bool
         if intersect?(start, fin, i, j)
-          result = false
+          return false
         end
       end
     end
-    result
+    true
   end
-  
+
   def intersect?(start, fin, i, j)
     !((start..fin).to_a & (i..j).to_a).empty?
   end
-  
+
   def check_range(start,fin)
     if start < 0 or
        fin < 0 or
