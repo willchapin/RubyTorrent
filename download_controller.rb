@@ -56,9 +56,6 @@ class DownloadController
     
     @blocks_to_write.push(block)
     
-    puts block.inspect
-    puts piece.is_complete?
-    
     if piece.is_complete?
       puts "piece #{piece.index} (#{piece.size} bytes) has been downloaded"
       if piece.is_verified?
@@ -84,8 +81,7 @@ class DownloadController
     hash_end_index = hash_begin_index + 20
     @pieces << Piece.new(size,
                          block.piece_index,
-                         @meta_info.pieces_hash[hash_begin_index...hash_end_index],
-                         @meta_info.piece_length)
+                         @meta_info.pieces_hash[hash_begin_index...hash_end_index])
   end
   
   def get_piece_size

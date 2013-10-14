@@ -2,7 +2,7 @@ class Piece
   
   attr_accessor :size, :index
   
-  def initialize(size, index, correct_hash, typical_piece_size)
+  def initialize(size, index, correct_hash)
     @size = size
     @byte_array = Array.new(@size, nil)
     @index = index
