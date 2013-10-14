@@ -21,22 +21,23 @@ class IncomingMessageProcess
   end
   
   def choking(message)
-      message.peer.state[:is_choking] = true
+    message.peer.state[:is_choking] = true
   end
   
   def unchoke(message)
-      message.peer.state[:is_choking] = false
+    message.peer.state[:is_choking] = false
   end
   
   def not_interested(message)
-      message.peer.state[:is_interested] = false
+    message.peer.state[:is_interested] = false
   end
   
   def interested(message)
-      message.peer.state[:is_interested] = true
+    message.peer.state[:is_interested] = true
   end
   
   def have(message)
+    
   end
   
   def bitfield(message)
