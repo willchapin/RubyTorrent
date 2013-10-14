@@ -7,8 +7,6 @@ class DownloadController
   def initialize(meta_info, block_request_queue, incoming_block_queue, peers)
     @meta_info = meta_info
     @piece_bitfield = "0" * (@meta_info.number_of_pieces)
-    puts get_total_num_blocks
-    puts @block_bitfield
     @pieces = []
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
@@ -36,19 +34,14 @@ class DownloadController
     end
     
     # last piece
-    0.upto(get_num_full_blocks_in_last_piece - 2) do |block_num|
+    0.upto(get_num_full_blocks_in_last_piece - 1) do |block_num|
       @block_request_queue.push({
         connection: peer.connection, index: get_num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
     end
     
     # last block
-    puts "request: " 
-    puts get_num_pieces - 1
-    puts BLOCK_SIZE * get_num_full_blocks_in_last_piece
-    puts get_last_block_size
-    
     @block_request_queue.push({
-      connection: peer.connection, index: get_num_pieces - 1, offset: BLOCK_SIZE * get_num_full_blocks_in_last_piece, size: get_last_block_size  })
+      connection: peer.connection, index: get_num_pieces - 1, offset: BLOCK_SIZE * get_num_full_blocks_in_last_piece, size: get_last_block_size })
  
   end
   
@@ -62,6 +55,10 @@ class DownloadController
     piece.write_block(block)
     
     @blocks_to_write.push(block)
+    
+    puts block.inspect
+    puts piece.is_complete?
+    
     if piece.is_complete?
       puts "piece #{piece.index} (#{piece.size} bytes) has been downloaded"
       if piece.is_verified?
@@ -77,8 +74,7 @@ class DownloadController
 
   def make_new_piece(block)
         
-    if block.piece_index == @meta_info.number_of_pieces - 1
-      puts "walla"
+    if last_piece?(block.piece_index)
       size = get_last_piece_size
     else
       size = @meta_info.piece_length
@@ -130,6 +126,10 @@ class DownloadController
   
   def get_num_full_blocks_in_last_piece
     get_num_full_blocks.remainder(get_num_blocks_in_piece)   
+  end
+  
+  def last_piece?(index)
+    index == @meta_info.number_of_pieces - 1
   end
 end
 

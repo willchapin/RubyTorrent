@@ -16,7 +16,6 @@ class IncomingMessageProcess
     send(message.type, message)
   end
   
-  
   def keep_alive(message)
   end
   
@@ -48,7 +47,6 @@ class IncomingMessageProcess
   
   # A piece is really a block, not a whole piece.
   def piece(message)
-    puts "block: " + message.print
     piece_index, byte_offset, block_data = split_piece_payload(message.payload)
     @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data))
   end

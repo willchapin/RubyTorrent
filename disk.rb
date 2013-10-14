@@ -29,9 +29,8 @@ class Disk
   end
  
   def write(block)
-    file_wrap = get_starting_file(block)
-    offset = get_file_offset(block, file_wrap)
-    puts block.inspect
+    file_wrap = starting_file(block)
+    offset = file_offset(block, file_wrap)
     write_to_disk(file_wrap, offset, block)
   end
   
@@ -44,7 +43,7 @@ class Disk
     end
     file_wrap.file.seek(offset)
     file_wrap.file.write(data_to_write)
-    write_to_file(@files[file_wrap.index + 1], 0, block) unless block.is_done?
+    write_to_disk(@files[file_wrap.index + 1], 0, block) unless block.is_done?
   end
   
   def space_in_file(file_wrap, offset)
@@ -55,7 +54,7 @@ class Disk
     block.data.length <= file_wrap.info[:length] - offset
   end
   
-  def get_file_offset(block, file_wrap)
+  def file_offset(block, file_wrap)
     global_start(block) - file_wrap.info[:start_byte]
   end
   
@@ -75,7 +74,7 @@ class Disk
     global_start(block) + block.data.length
   end
 
-  def get_starting_file(block)
+  def starting_file(block)
     if @meta_info.is_multi_file?
       file_index = 0
       1.upto(@file_infos.length - 1).each do |i|
