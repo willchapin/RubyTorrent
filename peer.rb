@@ -1,17 +1,19 @@
 class Peer
   
-  attr_accessor :connection, :initial_response, :bitfield, :state
+  attr_accessor :connection, :bitfield, :state
 
-  def initialize(ip_string, port, handshake)
+  def initialize(ip_string, port, handshake, correct_info_hash)
     @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
     @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
+    @correct_info_hash = correct_info_hash
     greet(handshake)
-    set_initial_response
     set_bitfield
   end
   
   def greet(handshake)
     @connection.write(handshake)
+    set_initial_response
+    verify_initial_response
   end
   
   def set_initial_response
@@ -25,6 +27,14 @@ class Peer
        info_hash: @connection.read(20),
        peer_id:   @connection.read(20)
     }
+  end
+  
+  def verify_initial_response
+    disconnect unless @initial_response[:info_hash] == @correct_info_hash
+  end
+  
+  def disconnect
+    self.connection.close
   end
   
   def set_bitfield

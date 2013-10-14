@@ -45,7 +45,7 @@ class Client
   
   def set_peer(ip_string, port)
     begin
-      Timeout::timeout(1) { @peers << Peer.new(ip_string, port, @handshake) }
+      Timeout::timeout(1) { @peers << Peer.new(ip_string, port, @handshake, @meta_info.info_hash) }
     rescue => exception
       puts exception
     end
