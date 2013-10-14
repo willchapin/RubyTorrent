@@ -67,7 +67,6 @@ class DownloadController
       if piece.is_verified?
         puts "piece #{piece.index} (#{piece.size} bytes) has been verified"
         @verification_table[piece.index] = 1
-        puts @verification_table
       end
     end
   end
