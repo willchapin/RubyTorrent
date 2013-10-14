@@ -38,7 +38,6 @@ class IncomingMessageProcess
   
   def have(message)
     message.peer.bitfield.have_piece(message.payload.unpack("N")[0])
-    
   end
   
   def bitfield(message)
@@ -50,7 +49,8 @@ class IncomingMessageProcess
   # A piece is really a block, not a whole piece.
   def piece(message)
     puts "block: " + message.print
-    push_to_block_queue(message.payload)
+    piece_index, byte_offset, block_data = split_piece_payload(message.payload)
+    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data))
   end
   
   def cancel(message)
@@ -59,12 +59,7 @@ class IncomingMessageProcess
   # needed for DHT implementation
   def port(message)
   end
-  
-  def push_to_block_queue(payload)
-    piece_index, byte_offset, block_data = split_piece_payload(payload)
-    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data))
-  end
-  
+    
   def split_piece_payload(payload)
     piece_index = payload.slice!(0..3).unpack("N")[0]
     byte_offset = payload.slice!(0..3).unpack("N")[0]
