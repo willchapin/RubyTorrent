@@ -13,10 +13,6 @@ class Block
     @done
   end
   
-  def set_done(bool)
-    @done = bool
-  end
-  
   def inspect
     "piece #{@piece_index}, offset #{@offset_in_piece}, data len #{@data.length}"
   end

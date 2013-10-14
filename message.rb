@@ -27,6 +27,8 @@ class Message
     end
   end
   
+  
+  
   def self.send_interested(peer)
     length = "\0\0\0\1"
     id = "\2"
