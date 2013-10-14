@@ -1,11 +1,23 @@
 class Message
   
-  attr_accessor :peer, :length, :id, :payload
+  MESSAGE_TYPES = { "-1" => :keep_alive,
+                     "0" => :choke,
+                     "1" => :unchoke,
+                     "2" => :interested,
+                     "3" => :not_interested,
+                     "4" => :have,
+                     "5" => :bitfield,
+                     "6" => :request,
+                     "7" => :piece,
+                     "8" => :cancel,
+                     "9" => :port }
+  
+  attr_accessor :peer, :length, :type, :payload
   
   def initialize(peer, length, id, payload)
     @peer = peer
     @length = length
-    @id = id
+    @type = MESSAGE_TYPES[id.to_s]
     @payload = payload
   end
   

@@ -17,8 +17,6 @@ class Peer
   end
   
   def set_initial_response
-    # TODO: check info_hash against metainfo file
-    # if mismatched, disconnect
     pstrlen = @connection.getbyte
     @initial_response = { 
        pstrlen:   pstrlen,

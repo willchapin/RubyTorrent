@@ -7,49 +7,55 @@ class IncomingMessageProcess
   
   def run!
     loop do
-      message = @message_queue.pop
-      process_message(message)
+      process_message(@message_queue.pop)
     end
   end
   
   def process_message(message)
-    case message.id
-    when "-1"
-      # TODO: keep-alive
-      puts "keep alive!"
-    when "0"
+    puts message.type
+    send(message.type, message)
+  end
+  
+  
+  def keep_alive(message)
+  end
+  
+  def choking(message)
       message.peer.state[:is_choking] = true
-      puts "is chokeing"
-    when "1"
+  end
+  
+  def unchoke(message)
       message.peer.state[:is_choking] = false
-      puts "not choking"
-    when "2"
+  end
+  
+  def not_interested(message)
       message.peer.state[:is_interested] = false
-      puts "is not interested"
-    when "3"
+  end
+  
+  def interested(message)
       message.peer.state[:is_interested] = true
-      puts "is interested"
-    when "4"
-      # TODO: have message
-      puts "have"
-    when "5"
-      # bitfield - currently handled in peer initialization
-      puts "bitfield"
-    when "6"
-      # TODO: request
-      puts "request"
-    when "7"
-      puts "block: " + message.print
-      push_to_block_queue(message.payload)
-    when "8"
-      puts "cancel"
-      # TODO - Cancel - cancels block requests. Used if the same 
-      # block is being downloaded from multiple peers, after block
-      # is successfully downloaded, cancel transfers from other peers
-    when "9"
-      puts "port"
-      # Port - enable for DTH tracker
-    end
+  end
+  
+  def have(message)
+  end
+  
+  def bitfield(message)
+  end
+  
+  def request(message)
+  end
+  
+  # A piece is really a block, not a whole piece.
+  def piece(message)
+    puts "block: " + message.print
+    push_to_block_queue(message.payload)
+  end
+  
+  def cancel(message)
+  end
+  
+  # needed for DHT implementation
+  def port(message)
   end
   
   def push_to_block_queue(payload)
