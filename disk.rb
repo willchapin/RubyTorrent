@@ -8,7 +8,7 @@ class Disk
  
   def set_files
     files = []
-    unless @meta_info.is_single_file?
+    if @meta_info.is_multi_file?
       Dir.mkdir("downloads/" + @meta_info.folder)
       byte_counter = 0
       @file_infos.each_with_index do |file_info, index|
@@ -38,7 +38,7 @@ class Disk
   def write_to_disk(file_wrap, offset, block)
     if block_fits_in_file?(file_wrap, offset, block)
       data_to_write = block.data
-      block.set_done(true)
+      block.done = true
     else
       data_to_write = block.data.slice!(0..space_in_file(file_wrap, offset))
     end
@@ -76,7 +76,7 @@ class Disk
   end
 
   def get_starting_file(block)
-    if !@meta_info.is_single_file?
+    if @meta_info.is_multi_file?
       file_index = 0
       1.upto(@file_infos.length - 1).each do |i|
         if @file_infos[i][:start_byte] > global_start(block)
