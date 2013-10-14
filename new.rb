@@ -22,4 +22,6 @@ require_relative 'bitfield'
 require_relative 'message'
 require_relative 'piece'
 
-Client.new(ARGV.first)
+client = Client.new(ARGV.first)
+client.run!
+client.join_threads

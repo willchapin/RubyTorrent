@@ -3,16 +3,14 @@ class Client
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
     set_instance_variables
-    send_tracker_request
     set_peers
-    run
-    join_threads
   end
   
   def set_instance_variables
     @message_queue = Queue.new
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
+    @peers = []
     @meta_info = MetaInfo.new(BEncode::Parser.new(@torrent).parse!)
     @id = rand_id # make better later
     @tracker = Tracker.new(@meta_info.announce)
@@ -23,7 +21,7 @@ class Client
     @tracker.make_request(get_tracker_request_params)
   end
   
-  def get_tracker_request_params
+  def tracker_request_params
     { info_hash:    @meta_info.info_hash,          
       peer_id:      rand_id,
       port:         '6881',
@@ -36,20 +34,20 @@ class Client
   end
   
   def set_peers
-    @peers ||= []
-    peers = @tracker.response["peers"].scan(/.{6}/)
+    peers = @tracker.make_request(tracker_request_params)["peers"].scan(/.{6}/)
     peers.map! do |peer|
       peer.unpack('a4n')
     end
-    
-    peers.each do |ip_string, port| 
-      begin
-        Timeout::timeout(1) do 
-          @peers << Peer.new(ip_string, port, @handshake)
-        end
-      rescue => exception
-        puts exception
-      end
+    peers.each do |ip_string, port|
+      set_peer(ip_string, port)   
+    end
+  end
+  
+  def set_peer(ip_string, port)
+    begin
+      Timeout::timeout(1) { @peers << Peer.new(ip_string, port, @handshake) }
+    rescue => exception
+      puts exception
     end
   end
 
@@ -59,7 +57,7 @@ class Client
     result
   end
 
-  def run
+  def run!
     peer = @peers.last
     Thread::abort_on_exception = true # remove later?
     Thread.new { Message.parse_stream(peer, @message_queue) }
