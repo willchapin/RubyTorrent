@@ -1,6 +1,7 @@
 class DownloadController
   
   require 'pry'
+  require 'matrix'
   
   BLOCK_SIZE = 2**14
   
@@ -11,8 +12,9 @@ class DownloadController
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
     @peers = peers
-    @blocks_to_write = Queue.new
     @verification_table = [0] * num_pieces
+    calculate_sorted_piece_list
+    @blocks_to_write = Queue.new
   end
   
   def run!
@@ -26,26 +28,31 @@ class DownloadController
     block_count = 0
     peer = @peers.last
 
+    requests = [] 
+    
     0.upto(num_pieces - 2).each do |piece_num|
       0.upto(num_blocks_in_piece - 1).each do |block_num|
-        @block_request_queue.push({ 
-          connection: peer.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+        requests.push({ connection: peer.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
       end
     end
     
     # last piece
     0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-      @block_request_queue.push({
-        connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+      requests.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
     end
     
     # last block
-    @block_request_queue.push({
-      connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
- 
+    requests.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
+    
+    puts "# of requests = #{requests.length}"
+    requests.shuffle!
+    requests.each { |request| @block_request_queue.push(request) }
+  
   end
   
   def process_block(block)
+    
+    puts block.inspect
     
     if new_piece?(block)
       make_new_piece(block)
@@ -61,6 +68,7 @@ class DownloadController
       if piece.is_verified?
         puts "piece #{piece.index} (#{piece.size} bytes) has been verified"
         @verification_table[piece.index] = 1
+        calculate_sorted_piece_list
       end
     end
   end
@@ -82,6 +90,21 @@ class DownloadController
     @pieces << Piece.new(size,
                          block.piece_index,
                          @meta_info.pieces_hash[hash_begin_index...hash_end_index])
+  end
+  
+  def calculate_sorted_piece_list
+    # refactor?
+    bit_sum = @peers.map { |peer| Matrix[peer.bitfield.bits] }.reduce(:+).to_a.flatten
+    piece_list = remove_finished_pieces(bit_sum)
+    sorted_piece_index = sort_by_index(piece_list)
+  end
+  
+  def sort_by_index(piece_list)
+    piece_list.map.with_index.sort_by(&:first).map(&:last)
+  end
+  
+  def remove_finished_pieces(bit_sum)
+    (0...num_pieces).map { |i| (@verification_table[i] - 1).abs * bit_sum[i] }
   end
   
   def piece_size

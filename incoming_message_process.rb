@@ -38,6 +38,7 @@ class IncomingMessageProcess
   def have(message)
     puts "have"
     message.peer.bitfield.have_piece(message.payload.unpack("N")[0])
+    puts message.peer.bitfield
   end
   
   def bitfield(message)
