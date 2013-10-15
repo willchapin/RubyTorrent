@@ -58,14 +58,19 @@ class Client
   end
 
   def run!
-    peer = @peers.last
+    
     Thread::abort_on_exception = true # remove later?
-    Thread.new { Message.parse_stream(peer, @message_queue) }
     Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue).run! } 
     Thread.new { DownloadController.new(@meta_info, @block_request_queue, @incoming_block_queue, @peers).run! } 
     Thread.new { BlockRequestProcess.new(@block_request_queue).run! }
-    Thread.new { keep_alive(peer) }
-    Message.send_interested(peer) # change later
+    
+    @peers.each do |peer|
+      Thread.new { Message.parse_stream(peer, @message_queue) }
+      Thread.new { keep_alive(peer) }
+      Message.send_interested(peer) # change later
+    end
+    
+
   end
   
   def join_threads

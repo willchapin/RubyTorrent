@@ -12,6 +12,7 @@ class IncomingMessageProcess
   end
   
   def process_message(message)
+    puts "Peer #{message.peer.id} has sent you a #{message.type} message"
     send(message.type, message)
   end
   

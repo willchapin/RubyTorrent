@@ -1,6 +1,6 @@
 class Peer
   
-  attr_accessor :connection, :bitfield, :state
+  attr_accessor :connection, :bitfield, :state, :id
 
   def initialize(ip_string, port, handshake, correct_info_hash)
     @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
@@ -14,6 +14,7 @@ class Peer
     @connection.write(handshake)
     set_initial_response
     verify_initial_response
+    @id = @initial_response[:peer_id]
   end
   
   def set_initial_response
