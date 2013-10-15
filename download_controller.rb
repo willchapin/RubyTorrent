@@ -13,7 +13,7 @@ class DownloadController
     @incoming_block_queue = incoming_block_queue
     @peers = peers
     @verification_table = [0] * num_pieces
-    calculate_sorted_piece_list
+    sorted_piece_indices
     @blocks_to_write = Queue.new
   end
   
@@ -24,8 +24,6 @@ class DownloadController
   end
   
   def push_to_block_request_queue
-    piece = 0
-    block_count = 0
     peer = @peers.last
 
     requests = [] 
@@ -92,11 +90,11 @@ class DownloadController
                          @meta_info.pieces_hash[hash_begin_index...hash_end_index])
   end
   
-  def calculate_sorted_piece_list
+  def sorted_piece_indices
     # refactor?
     bit_sum = @peers.map { |peer| Matrix[peer.bitfield.bits] }.reduce(:+).to_a.flatten
     piece_list = remove_finished_pieces(bit_sum)
-    sorted_piece_index = sort_by_index(piece_list)
+    sort_by_index(piece_list)
   end
   
   def sort_by_index(piece_list)
