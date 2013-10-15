@@ -12,7 +12,7 @@ class DownloadController
     @incoming_block_queue = incoming_block_queue
     @peers = peers
     @blocks_to_write = Queue.new
-    @verification_table = [0] * get_num_pieces
+    @verification_table = [0] * num_pieces
   end
   
   def run!
@@ -26,22 +26,22 @@ class DownloadController
     block_count = 0
     peer = @peers.last
 
-    0.upto(get_num_pieces - 2).each do |piece_num|
-      0.upto(get_num_blocks_in_piece - 1).each do |block_num|
+    0.upto(num_pieces - 2).each do |piece_num|
+      0.upto(num_blocks_in_piece - 1).each do |block_num|
         @block_request_queue.push({ 
           connection: peer.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
       end
     end
     
     # last piece
-    0.upto(get_num_full_blocks_in_last_piece - 1) do |block_num|
+    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
       @block_request_queue.push({
-        connection: peer.connection, index: get_num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+        connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
     end
     
     # last block
     @block_request_queue.push({
-      connection: peer.connection, index: get_num_pieces - 1, offset: BLOCK_SIZE * get_num_full_blocks_in_last_piece, size: get_last_block_size })
+      connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
  
   end
   
@@ -72,7 +72,7 @@ class DownloadController
   def make_new_piece(block)
         
     if last_piece?(block.piece_index)
-      size = get_last_piece_size
+      size = last_piece_size
     else
       size = @meta_info.piece_length
     end
@@ -84,44 +84,44 @@ class DownloadController
                          @meta_info.pieces_hash[hash_begin_index...hash_end_index])
   end
   
-  def get_piece_size
+  def piece_size
     @meta_info.piece_length
   end
   
-  def get_num_pieces
-    (get_file_size.to_f/get_piece_size).ceil
+  def num_pieces
+    (file_size.to_f/piece_size).ceil
   end
   
-  def get_last_block_size
-    get_file_size.remainder(BLOCK_SIZE)
+  def last_block_size
+    file_size.remainder(BLOCK_SIZE)
   end
   
   def is_last_block?(total_blocks)
-    total_blocks == get_num_full_blocks
+    total_blocks == num_full_blocks
   end
   
-  def get_num_full_blocks
+  def num_full_blocks
     @meta_info.total_size/BLOCK_SIZE
   end
   
-  def get_total_num_blocks
+  def total_num_blocks
     (@meta_info.total_size.to_f/BLOCK_SIZE).ceil
   end
   
-  def get_file_size
+  def file_size
     @meta_info.total_size
   end
   
-  def get_last_piece_size 
-    get_file_size - (get_piece_size * (@meta_info.number_of_pieces - 1))
+  def last_piece_size 
+    file_size - (piece_size * (@meta_info.number_of_pieces - 1))
   end
   
-  def get_num_blocks_in_piece
-    (get_piece_size.to_f/BLOCK_SIZE).ceil
+  def num_blocks_in_piece
+    (piece_size.to_f/BLOCK_SIZE).ceil
   end
   
-  def get_num_full_blocks_in_last_piece
-    get_num_full_blocks.remainder(get_num_blocks_in_piece)   
+  def num_full_blocks_in_last_piece
+    num_full_blocks.remainder(num_blocks_in_piece)   
   end
   
   def last_piece?(index)
