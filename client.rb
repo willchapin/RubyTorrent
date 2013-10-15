@@ -70,7 +70,6 @@ class Client
       Message.send_interested(peer) # change later
     end
     
-
   end
   
   def join_threads
