@@ -1,4 +1,6 @@
 class Client
+  
+  
     
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
@@ -78,7 +80,11 @@ class Client
   
   def keep_alive(peer)
     loop do
-      peer.connection.write("\0\0\0\0")
+      begin
+        peer.connection.write("\0\0\0\0")
+      rescue
+        puts "keep alive broken"
+      end
       sleep(60)
     end
   end

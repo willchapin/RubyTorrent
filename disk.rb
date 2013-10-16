@@ -32,6 +32,7 @@ class Disk
     file_wrap = starting_file(block)
     offset = file_offset(block, file_wrap)
     write_to_disk(file_wrap, offset, block)
+    puts "writing block #{block.inspect}"
   end
   
   def write_to_disk(file_wrap, offset, block)

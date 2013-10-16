@@ -2,7 +2,8 @@ class FileWriterProcess
 
   BLOCK_SIZE = 2**14
 
-  def initialize(blocks_to_write_queue, meta_info)
+  def initialize(blocks_to_write_queue, byte_array, meta_info)
+    @byte_array = byte_array
     @queue = blocks_to_write_queue
     @disk = Disk.new(meta_info) 
   end

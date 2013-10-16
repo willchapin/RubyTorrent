@@ -5,9 +5,9 @@ class DownloadedByteArray
     @byte_table = Array.new([[0, @length - 1, false]])
   end
 
-  def have_all(start, fin)
+  def has_all(start, fin)
     check_range(start,fin)
-    start_item, end_item = get_boundry_items
+    start_item, end_item = boundry_items
     first, second, third = nil
 
     if start_item[2] and end_item[2]
@@ -24,14 +24,15 @@ class DownloadedByteArray
       third = [fin + 1, end_item[1], end_item[2]]
     end
 
+    # hacky edge case fix
     first = nil if start == 0
     third = nil if fin == @length - 1
-
     @byte_table[start_index..end_index] = [first, second, third].compact
+    
     @byte_table
   end
 
-  def get_boundry_items
+  def boundry_items
     start_item, end_item = nil
     @byte_table.each_with_index do |element, index|
       start_item = @byte_table[index] if start.between?(element[0],element[1])
@@ -40,10 +41,11 @@ class DownloadedByteArray
     [start_item, end_item]
   end
 
-  def have_all?(start, fin)
+  def has_all?(start, fin)
     check_range(start, fin)
     @byte_table.each do |i, j, bool|
-      unless bool
+    puts bool
+      if !bool
         if intersect?(start, fin, i, j)
           return false
         end
@@ -53,7 +55,14 @@ class DownloadedByteArray
   end
 
   def intersect?(start, fin, i, j)
-    !((start..fin).to_a & (i..j).to_a).empty?
+    puts "#{start} #{fin} #{i} #{j}"
+    (start >= i and start <= j) or 
+    (fin >= i and fin <= j)
+  end
+  
+  def complete?
+    puts @byte_table
+    @byte_table == [[0, @length - 1, true]]
   end
 
   def check_range(start,fin)

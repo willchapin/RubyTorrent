@@ -1,6 +1,6 @@
 class Piece
   
-  attr_accessor :size, :index
+  attr_accessor :size, :index, :byte_array
   
   def initialize(size, index, correct_hash)
     @size = size
@@ -11,9 +11,8 @@ class Piece
   
   def write_block(block)
     begin_index = block.offset_in_piece
-    end_index = begin_index + block.data.length
+    end_index = begin_index + block.data.length - 1 
     @byte_array[begin_index..end_index] = block.data.split("")
-    binding.pry if @byte_array.count(nil) == 16384
   end
   
   def is_complete?
