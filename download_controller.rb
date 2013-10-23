@@ -81,17 +81,26 @@ class DownloadController
     loop do
       process_block(@incoming_block_queue.pop)
       @pending_requests -= 1
-      puts @pending_requests
     end
   end
   
   def process_block(block)
       
     @blocks_to_write.push(block)
+    start_byte, end_byte = get_range(block)
+    puts "start: #{start_byte}  end: #{end_byte}"
+    @byte_array.has_all(start_byte, end_byte)
+    puts @byte_array.inspect
      
   end
- 
   
+  def get_range(block)
+    size = last_block?(block) ? last_block_size : BLOCK_SIZE  
+    start_byte = block.piece_index * piece_size + block.offset_in_piece
+    end_byte = start_byte + size - 1
+    [start_byte, end_byte] 
+  end
+
   def done?
     @piece_verification_table.count(0).zero?
   end
@@ -107,6 +116,10 @@ class DownloadController
     bit_sum = @peers.map { |peer| Matrix[peer.bitfield.bits] }.reduce(:+).to_a.flatten
     piece_list = remove_finished_pieces(bit_sum)
     sort_by_index(piece_list)
+  end
+  
+  def last_block?(block)
+    block.piece_index * num_blocks_in_piece + (block.offset_in_piece/BLOCK_SIZE) == total_num_blocks - 1
   end
   
   def sort_by_index(piece_list)
