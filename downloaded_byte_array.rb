@@ -1,8 +1,7 @@
 class DownloadedByteArray
 
   def initialize(meta_info)
-   # @length = meta_info.total_size
-    @length = 100
+    @length = meta_info.total_size
     @byte_table = Array.new([[0, @length - 1, false]])
   end
 
@@ -13,6 +12,7 @@ class DownloadedByteArray
     # so horrible
     start_index = @byte_table.index(start_item)
     end_index = @byte_table.index(end_item)
+
     
     result = Array.new(3,nil)
     first, second, third = nil
@@ -32,9 +32,7 @@ class DownloadedByteArray
     end
 
     # hacky edge case fix
-    #first = nil if start == 0
-    #third = nil if fin == @length - 1
-    
+        
     result.map! do |item|
       unless item.nil?
         item = nil if item[0] > item[1]
