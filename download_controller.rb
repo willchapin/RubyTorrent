@@ -11,7 +11,6 @@ class DownloadController
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
     @peers = peers
-    @pieces = []
     @byte_array = DownloadedByteArray.new(meta_info)
     @piece_verification_table = [0] * num_pieces
     @blocks_to_write = Queue.new
@@ -76,14 +75,7 @@ class DownloadController
       end
     end
   end
-  
-  def verified?(piece_index)
-    piece = @pieces.find { |piece| piece.index == piece_index }
-    return false if piece.nil?
-    piece.is_verified? 
-  end
-  
-  
+
   
   def incoming_block_process
     loop do
@@ -94,43 +86,11 @@ class DownloadController
   end
   
   def process_block(block)
-        
-    if new_piece?(block)
-      make_new_piece(block)
-    end
-    
-    piece = @pieces.find { |piece| piece.index == block.piece_index }
-    piece.write_block(block)
-    
+      
     @blocks_to_write.push(block)
-    
-    if piece.is_complete?
-      puts "piece #{piece.index} (#{piece.size} bytes) has been downloaded"
-      if piece.is_verified?
-        puts "piece #{piece.index} (#{piece.size} bytes) has been verified"
-        @piece_verification_table[piece.index] = 1
-      end
-    end
+     
   end
-  
-  def new_piece?(block)
-    @pieces.none? { |piece| piece.index == block.piece_index }
-  end 
-
-  def make_new_piece(block)
-        
-    if last_piece?(block.piece_index)
-      size = last_piece_size
-    else
-      size = @meta_info.piece_length
-    end
-    
-    hash_begin_index = block.piece_index * 20
-    hash_end_index = hash_begin_index + 20
-    @pieces << Piece.new(size,
-                         block.piece_index,
-                         @meta_info.pieces_hash[hash_begin_index...hash_end_index])
-  end
+ 
   
   def done?
     @piece_verification_table.count(0).zero?
