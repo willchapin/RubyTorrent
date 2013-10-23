@@ -2,6 +2,7 @@ class DownloadedByteArray
 
   def initialize(meta_info)
     @length = meta_info.total_size
+    #@length = 100
     @byte_table = Array.new([[0, @length - 1, false]])
   end
 
@@ -13,7 +14,6 @@ class DownloadedByteArray
     start_index = @byte_table.index(start_item)
     end_index = @byte_table.index(end_item)
 
-    
     result = Array.new(3,nil)
     first, second, third = nil
 
@@ -40,10 +40,23 @@ class DownloadedByteArray
       item
     end
     
-    
     @byte_table[start_index..end_index] = result.compact
+    #check one before and one after. consolidate if needed
+    puts "start index: #{start_index}, end index: #{end_index}"
     
+    consolidate!
+         
     @byte_table
+  end
+  
+  def consolidate!
+    0.upto(@byte_table.length - 2).each do |n|
+      if @byte_table[n][2] == @byte_table[n+1][2]
+        @byte_table[n+1][0] = @byte_table[n][0]
+        @byte_table[n] = nil 
+      end
+    end
+    @byte_table.compact!
   end
 
   def boundry_items(start, fin)
