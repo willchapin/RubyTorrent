@@ -49,7 +49,7 @@ class DownloadController
     # last block
     requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
     
-    requests.shuffle!
+    requests.shuffle
     requests.each { |request| @block_request_queue.push(request) }
   
   end
@@ -76,7 +76,6 @@ class DownloadController
     end
   end
 
-  
   def incoming_block_process
     loop do
       process_block(@incoming_block_queue.pop)
@@ -88,9 +87,14 @@ class DownloadController
       
     @blocks_to_write.push(block)
     start_byte, end_byte = get_range(block)
-    puts "start: #{start_byte}  end: #{end_byte}"
     @byte_array.has_all(start_byte, end_byte)
-    puts @byte_array.inspect
+    
+    current_piece_size = current_piece_size(block.piece_index)
+    piece_start_byte = block.piece_index * piece_size
+    piece_end_byte = piece_start_byte + current_piece_size - 1
+    
+    puts "do we have the piece numbered #{block.piece_index}? #{@byte_array.has_all?(piece_start_byte, piece_end_byte)}"
+    #puts @byte_array.inspect
      
   end
   
@@ -103,6 +107,10 @@ class DownloadController
 
   def done?
     @piece_verification_table.count(0).zero?
+  end
+  
+  def current_piece_size(piece_index)
+    last_piece?(piece_index) ? last_piece_size : piece_size
   end
 
   def byte_range(piece_index, block_index)

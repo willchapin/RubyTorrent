@@ -2,7 +2,6 @@ class DownloadedByteArray
 
   def initialize(meta_info)
     @length = meta_info.total_size
-    #@length = 100
     @byte_table = Array.new([[0, @length - 1, false]])
   end
 
@@ -42,7 +41,7 @@ class DownloadedByteArray
     
     @byte_table[start_index..end_index] = result.compact
     #check one before and one after. consolidate if needed
-    puts "start index: #{start_index}, end index: #{end_index}"
+    #puts "start index: #{start_index}, end index: #{end_index}"
     
     consolidate!
          
@@ -71,7 +70,6 @@ class DownloadedByteArray
   def has_all?(start, fin)
     check_range(start, fin)
     @byte_table.each do |i, j, bool|
-    puts bool
       if !bool
         if intersect?(start, fin, i, j)
           return false
@@ -82,13 +80,11 @@ class DownloadedByteArray
   end
 
   def intersect?(start, fin, i, j)
-    puts "#{start} #{fin} #{i} #{j}"
     (start >= i and start <= j) or 
     (fin >= i and fin <= j)
   end
   
   def complete?
-    puts @byte_table
     @byte_table == [[0, @length - 1, true]]
   end
 
