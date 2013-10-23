@@ -28,30 +28,30 @@ class DownloadController
   
   def push_to_block_request_queue
             
-    until done?
-      rarest_piece_index = sorted_piece_indices[0]
-      puts "rarest piece index: #{rarest_piece_index} !!!!"
-      get_piece(rarest_piece_index)
-    end  
+   # until done?
+   #   rarest_piece_index = sorted_piece_indices[0]
+   #   puts "rarest piece index: #{rarest_piece_index} !!!!"
+   #   get_piece(rarest_piece_index)
+   # end  
     
-  #  requests = [] 
-  #  
-  #  0.upto(num_pieces - 2).each do |piece_num|
-  #    0.upto(num_blocks_in_piece - 1).each do |block_num|
-  #      requests.push({ connection: @peers.sample.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
-  #    end
-  #  end
-  #  
-  #  # last piece
-  #  0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-  #    requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
-  #  end
-  #  
-  #  # last block
-  #  requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
-  #  
-  #  requests.shuffle!
-  #  requests.each { |request| @block_request_queue.push(request) }
+    requests = [] 
+    
+    0.upto(num_pieces - 2).each do |piece_num|
+      0.upto(num_blocks_in_piece - 1).each do |block_num|
+        requests.push({ connection: @peers.sample.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+      end
+    end
+    
+    # last piece
+    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
+      requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+    end
+    
+    # last block
+    requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
+    
+    requests.shuffle
+    requests.each { |request| @block_request_queue.push(request) }
   
   end
   
@@ -83,6 +83,8 @@ class DownloadController
     piece.is_verified? 
   end
   
+  
+  
   def incoming_block_process
     loop do
       process_block(@incoming_block_queue.pop)
@@ -91,7 +93,7 @@ class DownloadController
     end
   end
   
-   def process_block(block)
+  def process_block(block)
         
     if new_piece?(block)
       make_new_piece(block)
