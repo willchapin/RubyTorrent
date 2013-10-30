@@ -29,11 +29,9 @@ class Message
   def print
     "index: #{ self.payload[0..3].unpack("N")}, offset: #{self.payload[4..8].unpack("N") }"
   end
-  $count = 0
   def self.parse_stream(peer, message_queue)
     loop do
       begin       
-        $count += 1
         length = peer.connection.read(4).unpack("N")[0]
         id = length.zero? ? "-1" : peer.connection.readbyte.to_s
         payload = has_payload?(id) ? peer.connection.read(length - 1) : nil

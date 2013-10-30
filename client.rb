@@ -1,6 +1,4 @@
 class Client
-  
-  
     
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)

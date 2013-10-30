@@ -86,18 +86,9 @@ class DownloadController
   def process_block(block)
       
     @blocks_to_write.push(block)
-    start_byte, end_byte = get_range(block)
-    @byte_array.has_all(start_byte, end_byte)
-    
-    current_piece_size = current_piece_size(block.piece_index)
-    piece_start_byte = block.piece_index * piece_size
-    piece_end_byte = piece_start_byte + current_piece_size - 1
-    
-    puts "do we have the piece numbered #{block.piece_index}? #{@byte_array.has_all?(piece_start_byte, piece_end_byte)}"
-    #puts @byte_array.inspect
-     
+         
   end
-  
+    
   def get_range(block)
     size = last_block?(block) ? last_block_size : BLOCK_SIZE  
     start_byte = block.piece_index * piece_size + block.offset_in_piece

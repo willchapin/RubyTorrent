@@ -47,6 +47,45 @@ class Disk
     write_to_disk(@files[file_wrap.index + 1], 0, block) unless block.is_done?
   end
   
+  def read(start_byte, end_byte)
+    puts "reading from file start_byte: #{start_byte}, end_byte: #{end_byte}"
+    file_wrap = get_starting_file(start_byte)
+    puts "file wrap index: #{file_wrap.index}"
+    puts @files.length
+    result = ""
+    file_wrap.file.seek(start_byte - file_wrap.info[:start_byte])
+    puts "FILE WRAP: #{file_wrap.inspect}"
+    if spans_two_file?(file_wrap, end_byte)
+      current_file_index = @files.index(file_wrap)
+      next_file = @files[current_file_index + 1]
+      result << read(next_file.info[:start_byte], end_byte)
+    else
+      result << file_wrap.file.read(end_byte - start_byte)
+    end
+    result
+  end
+  
+  def get_starting_file(start_byte)
+    if @meta_info.is_multi_file?
+      file_index = 0
+      1.upto(@file_infos.length - 1).each do |i|
+        if @file_infos[i][:start_byte] > start_byte
+          break
+        else
+          file_index += 1
+        end
+      end
+      return @files[file_index]     
+    else
+      return @files[0]
+    end
+  end
+  
+  def spans_two_file?(file_wrap, end_byte)
+    puts "file end: #{file_wrap.info[:end_byte]}, total_end: #{end_byte}" 
+    file_wrap.info[:end_byte] < end_byte
+  end
+  
   def space_in_file(file_wrap, offset)
     file_wrap.info[:length] - offset 
   end
