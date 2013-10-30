@@ -38,7 +38,6 @@ class Message
         message_queue << self.new(peer, length, id, payload)
       rescue => exception
         puts exception
-        puts $count
         break
       end
     end
@@ -51,13 +50,11 @@ class Message
   end
   
   def self.send_have(peers, index)
-    puts "Hey ! #{peers.length}"
     length = "\0\0\0\5"
     id = "\4"
     piece_index = [index].pack("N")
     peers.each do |peer| 
       peer.connection.write(length + id + piece_index)
-      puts "sent 'have' message to #{peer.id}"
     end
   
   end

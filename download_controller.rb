@@ -5,13 +5,13 @@ class DownloadController
   
   BLOCK_SIZE = 2**14
   
-  def initialize(meta_info, block_request_queue, incoming_block_queue, peers)
-    @meta_info = meta_info
-    @piece_bitfield = "0" * (@meta_info.number_of_pieces)
+  def initialize(metainfo, block_request_queue, incoming_block_queue, peers)
+    @metainfo = metainfo
+    @piece_bitfield = "0" * (@metainfo.number_of_pieces)
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
     @peers = peers
-    @byte_array = DownloadedByteArray.new(meta_info)
+    @byte_array = DownloadedByteArray.new(metainfo)
     @piece_verification_table = [0] * num_pieces
     @blocks_to_write = Queue.new
     @pending_requests = 0
@@ -19,7 +19,7 @@ class DownloadController
   
   def run!
     Thread::abort_on_exception = true # remove later?
-    Thread.new { FileWriterProcess.new(@blocks_to_write, @byte_array, @meta_info).run! } 
+    Thread.new { FileWriterProcess.new(@blocks_to_write, @byte_array, @metainfo).run! } 
     Thread.new { incoming_block_process }    
     Thread.new { push_to_block_request_queue }
     
@@ -84,6 +84,7 @@ class DownloadController
   end
   
   def process_block(block)
+    puts block.inspect
       
     @blocks_to_write.push(block)
          
@@ -132,7 +133,7 @@ class DownloadController
   end
   
   def piece_size
-    @meta_info.piece_length
+    @metainfo.piece_length
   end
   
   def num_pieces
@@ -148,19 +149,19 @@ class DownloadController
   end
   
   def num_full_blocks
-    @meta_info.total_size/BLOCK_SIZE
+    @metainfo.total_size/BLOCK_SIZE
   end
   
   def total_num_blocks
-    (@meta_info.total_size.to_f/BLOCK_SIZE).ceil
+    (@metainfo.total_size.to_f/BLOCK_SIZE).ceil
   end
   
   def file_size
-    @meta_info.total_size
+    @metainfo.total_size
   end
   
   def last_piece_size 
-    file_size - (piece_size * (@meta_info.number_of_pieces - 1))
+    file_size - (piece_size * (@metainfo.number_of_pieces - 1))
   end
   
   def num_blocks_in_piece
@@ -172,7 +173,7 @@ class DownloadController
   end
   
   def last_piece?(index)
-    index == @meta_info.number_of_pieces - 1
+    index == @metainfo.number_of_pieces - 1
   end
 end
 

@@ -1,20 +1,31 @@
+require_relative 'helpers'
 class Block
   
-  attr_accessor :piece_index, :offset_in_piece, :data, :done
+  include Helpers
   
-  def initialize(piece_index, offset, data)
-    @piece_index = piece_index
-    @offset_in_piece = offset
+  attr_accessor :start_byte, :end_byte, :data
+  
+  def initialize(piece_index, offset, data, metainfo)
+    @metainfo = metainfo
     @data = data
-    @done = false
-  end
-  
-  def is_done?
-    @done
+    @piece_index = piece_index
+    @offset = offset
+    @start_byte = get_start_byte
+    @end_byte = get_end_byte
   end
   
   def inspect
     "piece #{@piece_index}, offset #{@offset_in_piece}, data len #{@data.length}"
   end
+  
+  private
+  
+    def get_start_byte
+      @piece_index * piece_size + @offset
+    end
+    
+    def get_end_byte
+      @start_byte + @data.length - 1
+    end
   
 end
