@@ -11,8 +11,8 @@ class DownloadController
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
     @peers = peers
-    @byte_array = ByteArray.new(metainfo)
-    @file_handler = FileHandler.new(@metainfo)
+    @byte_array = ByteArray.new(@metainfo)
+    @file_handler = FileHandler.new(@metainfo, @byte_array)
   end
   
   def run!
@@ -52,9 +52,7 @@ class DownloadController
   def incoming_block_process
     loop do
       block = @incoming_block_queue.pop
-      @file_handler.write_block(block)    
-      @byte_array.have_all(block.start_byte, block.end_byte)
-      
+      @file_handler.process_block(block)          
     end
   end
   
