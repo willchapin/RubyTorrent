@@ -1,29 +1,12 @@
 class Piece
   
-  attr_accessor :size, :index, :byte_array
+  attr_accessor :index, :start_byte, :end_byte
   
-  def initialize(size, index, correct_hash)
-    @size = size
-    @byte_array = Array.new(@size, nil)
+  def initialize(index, start_byte, end_byte, hash)
     @index = index
-    @correct_hash = correct_hash
+    @start_byte = start_byte
+    @end_byte = end_byte
+    @hash = hash
   end
   
-  def write_block(block)
-    begin_index = block.offset_in_piece
-    end_index = begin_index + block.data.length - 1 
-    @byte_array[begin_index..end_index] = block.data.split("")
-  end
-  
-  def is_complete?
-    !@byte_array.include?(nil)
-  end
-  
-  def a_to_s
-    @byte_array.join("")
-  end
-  
-  def is_verified?
-    Digest::SHA1.new.digest(@byte_array.join) == @correct_hash
-  end
 end

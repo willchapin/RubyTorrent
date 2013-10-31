@@ -3,7 +3,7 @@ class Block
   
   include Helpers
   
-  attr_accessor :start_byte, :end_byte, :data
+  attr_accessor :start_byte, :end_byte, :data, :piece_start_byte, :piece_end_byte
   
   def initialize(piece_index, offset, data, metainfo)
     @metainfo = metainfo

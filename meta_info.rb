@@ -12,6 +12,22 @@ class MetaInfo
     set_total_size
     set_folder
     set_files
+    set_pieces
+  end
+  
+  def set_pieces
+    @pieces = []
+    (0...@number_of_pieces).each do |i|
+      index = i
+      start_byte = i * @piece_length 
+      if i == @number_of_pieces - 1
+        end_byte = @total_size - 1
+      else
+        end_byte = start_byte + @piece_length - 1
+      end
+      hash = @meta_info["info"]["pieces"][20*i...20*(i+1)]
+      @pieces << Piece.new(index, start_byte, end_byte, hash)
+    end
   end
   
   def set_total_size
