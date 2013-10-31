@@ -53,8 +53,8 @@ class DownloadController
     loop do
       block = @incoming_block_queue.pop
       @file_handler.write_block(block)    
-      # record block
-      # verify?  
+      @byte_array.have_all(block.start_byte, block.end_byte)
+      
     end
   end
   

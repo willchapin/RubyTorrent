@@ -5,7 +5,7 @@ class DownloadedByteArray
     @byte_table = Array.new([[0, @length - 1, false]])
   end
 
-  def has_all(start, fin)
+  def have_all(start, fin)
     check_range(start,fin)
     start_item, end_item = boundry_items(start, fin)
     
@@ -39,12 +39,8 @@ class DownloadedByteArray
       item
     end
     
-    @byte_table[start_index..end_index] = result.compact
-    #check one before and one after. consolidate if needed
-    #puts "start index: #{start_index}, end index: #{end_index}"
-    
+    @byte_table[start_index..end_index] = result.compact    
     consolidate!
-         
     @byte_table
   end
   
@@ -67,7 +63,7 @@ class DownloadedByteArray
     [start_item, end_item]
   end
 
-  def has_all?(start, fin)
+  def have_all?(start, fin)
     check_range(start, fin)
     @byte_table.each do |i, j, bool|
       if !bool
