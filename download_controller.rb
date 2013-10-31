@@ -44,7 +44,7 @@ class DownloadController
     
     # last block
     requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
-    requests.shuffle
+    requests.shuffle!
     requests.each { |request| @block_request_queue.push(request) }
   
   end
