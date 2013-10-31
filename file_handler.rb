@@ -19,6 +19,11 @@ class FileHandler
   def process_block(block)
     write_block(block)
     record_block(block)
+    
+    piece_start = @metainfo.pieces[block.piece_index].start_byte
+    piece_end = @metainfo.pieces[block.piece_index].end_byte
+    verify_piece(block.piece_index) if @byte_array.have_all?(piece_start, piece_end)
+    
     finish if @byte_array.complete?
   end
   
@@ -32,8 +37,26 @@ class FileHandler
     @byte_array.have_all(block.start_byte, block.end_byte)
   end
   
+  def verify_piece(index)
+    piece = @metainfo.pieces[index]
+    if piece.hash == hash_from_file(piece)
+      puts "verify! #{index}"
+    else
+      puts 'sorry'
+    end
+  end
+  
+  def hash_from_file(piece)
+    Digest::SHA1.new.digest(read(piece.start_byte, piece.length))
+  end
+  
+  def read(start, length)
+    @file.seek(start)
+    @file.read(length)
+  end
+  
   def finish
-    puts "finishing"
+    puts "finishing!"
     @file.close
     if @metainfo.is_multi_file?
       split_files
