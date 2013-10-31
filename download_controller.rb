@@ -11,7 +11,7 @@ class DownloadController
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
     @peers = peers
-    @byte_array = DownloadedByteArray.new(metainfo)
+    @byte_array = ByteArray.new(metainfo)
     @file_handler = FileHandler.new(@metainfo)
   end
   

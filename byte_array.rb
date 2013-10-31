@@ -1,8 +1,8 @@
-class DownloadedByteArray
+class ByteArray
 
   def initialize(meta_info)
     @length = meta_info.total_size
-    @byte_table = Array.new([[0, @length - 1, false]])
+    @bytes = Array.new([[0, @length - 1, false]])
   end
 
   def have_all(start, fin)
@@ -10,8 +10,8 @@ class DownloadedByteArray
     start_item, end_item = boundry_items(start, fin)
     
     # so horrible
-    start_index = @byte_table.index(start_item)
-    end_index = @byte_table.index(end_item)
+    start_index = @bytes.index(start_item)
+    end_index = @bytes.index(end_item)
 
     result = Array.new(3,nil)
     first, second, third = nil
@@ -39,33 +39,33 @@ class DownloadedByteArray
       item
     end
     
-    @byte_table[start_index..end_index] = result.compact    
+    @bytes[start_index..end_index] = result.compact    
     consolidate!
-    @byte_table
+    @bytes
   end
   
   def consolidate!
-    0.upto(@byte_table.length - 2).each do |n|
-      if @byte_table[n][2] == @byte_table[n+1][2]
-        @byte_table[n+1][0] = @byte_table[n][0]
-        @byte_table[n] = nil 
+    0.upto(@bytes.length - 2).each do |n|
+      if @bytes[n][2] == @bytes[n+1][2]
+        @bytes[n+1][0] = @bytes[n][0]
+        @bytes[n] = nil 
       end
     end
-    @byte_table.compact!
+    @bytes.compact!
   end
 
   def boundry_items(start, fin)
     start_item, end_item = nil
-    @byte_table.each_with_index do |element, index|
-      start_item = @byte_table[index] if start.between?(element[0],element[1])
-      end_item = @byte_table[index] if fin.between?(element[0],element[1])
+    @bytes.each_with_index do |element, index|
+      start_item = @bytes[index] if start.between?(element[0],element[1])
+      end_item = @bytes[index] if fin.between?(element[0],element[1])
     end
     [start_item, end_item]
   end
 
   def have_all?(start, fin)
     check_range(start, fin)
-    @byte_table.each do |i, j, bool|
+    @bytes.each do |i, j, bool|
       if !bool
         if intersect?(start, fin, i, j)
           return false
@@ -81,7 +81,7 @@ class DownloadedByteArray
   end
   
   def complete?
-    @byte_table == [[0, @length - 1, true]]
+    @bytes == [[0, @length - 1, true]]
   end
 
   def check_range(start,fin)
