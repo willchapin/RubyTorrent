@@ -1,20 +1,20 @@
 class Disk
 
-  def initialize(meta_info)
-    @meta_info = meta_info
-    @file_infos = @meta_info.files
+  def initialize(metainfo)
+    @metainfo = metainfo
+    @file_infos = @metainfo.files
     @files = set_files
   end
  
   def set_files
     files = []
-    if @meta_info.is_multi_file?
-      Dir.mkdir("downloads/" + @meta_info.folder)
+    if @metainfo.is_multi_file?
+      Dir.mkdir("downloads/" + @metainfo.folder)
       byte_counter = 0
       @file_infos.each_with_index do |file_info, index|
-      File.new("downloads/" + @meta_info.folder + "/" + file_info[:name], "w+")
+      File.new("downloads/" + @metainfo.folder + "/" + file_info[:name], "w+")
       files << FileWrapper.new(
-                  File.open("downloads/" + @meta_info.folder + "/" + file_info[:name], "r+"),
+                  File.open("downloads/" + @metainfo.folder + "/" + file_info[:name], "r+"),
                   file_info,
                   index)
       end 
@@ -66,7 +66,7 @@ class Disk
   end
   
   def get_starting_file(start_byte)
-    if @meta_info.is_multi_file?
+    if @metainfo.is_multi_file?
       file_index = 0
       1.upto(@file_infos.length - 1).each do |i|
         if @file_infos[i][:start_byte] > start_byte
@@ -99,15 +99,15 @@ class Disk
   end
   
   def remainder_in_file(file_index, file_offset)
-    @meta_info.files[file_index][:length] - file_offset
+    @metainfo.files[file_index][:length] - file_offset
   end
   
   def byte_to_write(block, file_index)
-    global_start(block) - @meta_info.files[file_index][:start_byte]
+    global_start(block) - @metainfo.files[file_index][:start_byte]
   end
   
   def global_start(block)
-    (block.piece_index * @meta_info.piece_length) + block.offset_in_piece
+    (block.piece_index * @metainfo.piece_length) + block.offset_in_piece
   end
   
   def global_end(block)
@@ -115,7 +115,7 @@ class Disk
   end
 
   def starting_file(block)
-    if @meta_info.is_multi_file?
+    if @metainfo.is_multi_file?
       file_index = 0
       1.upto(@file_infos.length - 1).each do |i|
         if @file_infos[i][:start_byte] > global_start(block)

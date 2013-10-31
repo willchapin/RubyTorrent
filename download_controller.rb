@@ -13,13 +13,13 @@ class DownloadController
     @peers = peers
     @byte_array = DownloadedByteArray.new(metainfo)
     @piece_verification_table = [0] * num_pieces
-    @blocks_to_write = Queue.new
     @pending_requests = 0
+    @file_builder = FileBuilder.new(@metainfo)
   end
   
   def run!
     Thread::abort_on_exception = true # remove later?
-    Thread.new { FileWriterProcess.new(@blocks_to_write, @byte_array, @metainfo).run! } 
+    #Thread.new { FileWriterProcess.new(@blocks_to_write, @byte_array, @metainfo).run! } 
     Thread.new { incoming_block_process }    
     Thread.new { push_to_block_request_queue }
     
@@ -48,48 +48,19 @@ class DownloadController
     
     # last block
     requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
-    
     requests.shuffle
     requests.each { |request| @block_request_queue.push(request) }
   
   end
   
-  def get_piece(piece_index)
-    puts "PIECE INDEX #{piece_index}"
-    block_num = 0
-    until verified?(piece_index)
-      while @pending_requests <= 10
-        # For the love of God refactor
-        block_num.upto(num_blocks_in_piece - 1).each do |block_index|
-          start, fin = byte_range(piece_index, block_index)
-          puts start
-          puts fin
-          unless @byte_array.has_all?(start, fin)
-            puts "block index: #{block_index}"
-            @block_request_queue.push({ connection: @peers.sample.connection, index: piece_index, offset: BLOCK_SIZE * block_index, size: BLOCK_SIZE })
-            @pending_requests += 1
-          end
-          block_num += 1
-          break if @pending_requests > 10
-        end
-      end
-    end
-  end
-
   def incoming_block_process
     loop do
-      process_block(@incoming_block_queue.pop)
+      block = @incoming_block_queue.pop
+      @file_builder.write_block(block)
       @pending_requests -= 1
     end
   end
   
-  def process_block(block)
-    puts block.inspect
-      
-    @blocks_to_write.push(block)
-         
-  end
-    
   def get_range(block)
     size = last_block?(block) ? last_block_size : BLOCK_SIZE  
     start_byte = block.piece_index * piece_size + block.offset_in_piece
