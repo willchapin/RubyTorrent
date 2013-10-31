@@ -18,7 +18,7 @@ require_relative 'byte_array'
 require_relative 'incoming_message_process'
 require_relative 'tracker'
 require_relative 'peer'
-#require_relative 'bitfield'
+require_relative 'bitfield'
 require_relative 'message'
 
 client = Client.new(ARGV.first)
