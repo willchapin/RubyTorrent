@@ -2,30 +2,26 @@ class DownloadController
   
   require 'pry'
   require 'matrix'
+  include Helpers
   
   BLOCK_SIZE = 2**14
   
   def initialize(metainfo, block_request_queue, incoming_block_queue, peers)
     @metainfo = metainfo
-    @piece_bitfield = "0" * (@metainfo.number_of_pieces)
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
     @peers = peers
     @byte_array = DownloadedByteArray.new(metainfo)
-    @piece_verification_table = [0] * num_pieces
-    @pending_requests = 0
-    @file_builder = FileBuilder.new(@metainfo)
+    @file_handler = FileHandler.new(@metainfo)
   end
   
   def run!
-    Thread::abort_on_exception = true # remove later?
-    #Thread.new { FileWriterProcess.new(@blocks_to_write, @byte_array, @metainfo).run! } 
+    Thread::abort_on_exception = true
     Thread.new { incoming_block_process }    
-    Thread.new { push_to_block_request_queue }
-    
+    Thread.new { request_scheduler }
   end
   
-  def push_to_block_request_queue
+  def request_scheduler
             
    # until done?
    #   rarest_piece_index = sorted_piece_indices[0]
@@ -56,95 +52,27 @@ class DownloadController
   def incoming_block_process
     loop do
       block = @incoming_block_queue.pop
-      @file_builder.write_block(block)
-      @pending_requests -= 1
+      @file_handler.write_block(block)    
+      # record block
+      # verify?  
     end
   end
   
-  def get_range(block)
-    size = last_block?(block) ? last_block_size : BLOCK_SIZE  
-    start_byte = block.piece_index * piece_size + block.offset_in_piece
-    end_byte = start_byte + size - 1
-    [start_byte, end_byte] 
-  end
-
-  def done?
-    @piece_verification_table.count(0).zero?
-  end
+  private
+    def sorted_piece_indices
+      # refactor? super confusing? exceptionally unclear?
+      bitfield_sum = @peers.map { |peer| Matrix[peer.bitfield.bits] }.reduce(:+).to_a.flatten
+      piece_list = remove_finished_pieces(bitfield_sum)
+      sort_by_index(piece_list)
+    end
   
-  def current_piece_size(piece_index)
-    last_piece?(piece_index) ? last_piece_size : piece_size
-  end
-
-  def byte_range(piece_index, block_index)
-    start = (piece_index * piece_size) + (block_index * BLOCK_SIZE)
-    fin = start + BLOCK_SIZE - 1
-    [start, fin]
-  end
-
-  def sorted_piece_indices
-    # refactor? super confusing? exceptionally unclear?
-    bit_sum = @peers.map { |peer| Matrix[peer.bitfield.bits] }.reduce(:+).to_a.flatten
-    piece_list = remove_finished_pieces(bit_sum)
-    sort_by_index(piece_list)
-  end
+    def sort_by_index(piece_list)
+      piece_list.map.with_index.sort_by(&:first).map(&:last)
+    end
   
-  def last_block?(block)
-    block.piece_index * num_blocks_in_piece + (block.offset_in_piece/BLOCK_SIZE) == total_num_blocks - 1
-  end
-  
-  def sort_by_index(piece_list)
-    piece_list.map.with_index.sort_by(&:first).map(&:last)
-  end
-  
-  def remove_finished_pieces(bit_sum)
-    puts bit_sum.class
-    puts @piece_verification_table.class
-    (0...num_pieces).map { |i| (@piece_verification_table[i] - 1).abs * bit_sum[i] }
-  end
-  
-  def piece_size
-    @metainfo.piece_length
-  end
-  
-  def num_pieces
-    (file_size.to_f/piece_size).ceil
-  end
-  
-  def last_block_size
-    file_size.remainder(BLOCK_SIZE)
-  end
-  
-  def is_last_block?(total_blocks)
-    total_blocks == num_full_blocks
-  end
-  
-  def num_full_blocks
-    @metainfo.total_size/BLOCK_SIZE
-  end
-  
-  def total_num_blocks
-    (@metainfo.total_size.to_f/BLOCK_SIZE).ceil
-  end
-  
-  def file_size
-    @metainfo.total_size
-  end
-  
-  def last_piece_size 
-    file_size - (piece_size * (@metainfo.number_of_pieces - 1))
-  end
-  
-  def num_blocks_in_piece
-    (piece_size.to_f/BLOCK_SIZE).ceil
-  end
-  
-  def num_full_blocks_in_last_piece
-    num_full_blocks.remainder(num_blocks_in_piece)   
-  end
-  
-  def last_piece?(index)
-    index == @metainfo.number_of_pieces - 1
-  end
+    def remove_finished_pieces(bitfield_sum)
+      (0...num_pieces).map { |i| (@piece_verification_table[i] - 1).abs * bitfield_sum[i] }
+    end
+    
 end
 

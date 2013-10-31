@@ -1,4 +1,4 @@
-class FileBuilder
+class FileHandler
   
   def initialize(metainfo)
     @metainfo = metainfo
@@ -7,13 +7,15 @@ class FileBuilder
   end
   
   def init_file
-    File.new("temp/" + @temp_name, "w+")
+    File.open("temp/" + @temp_name, "w+")
     File.open("temp/" + @temp_name, "r+")
   end
   
   def write_block(block)
+    puts block.end_byte
     @file.seek(block.start_byte)
     @file.write(block.data)
   end
+  
 end
     

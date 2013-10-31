@@ -9,9 +9,7 @@ require 'pp'
 require_relative 'ruby-bencode/lib/bencode.rb'
 require_relative 'client'
 require_relative 'block'
-require_relative 'disk'
-require_relative 'file_wrapper'
-require_relative 'file_builder'
+require_relative 'file_handler'
 require_relative 'meta_info'
 require_relative 'download_controller'
 require_relative 'file_writer_process'
@@ -22,7 +20,6 @@ require_relative 'tracker'
 require_relative 'peer'
 require_relative 'bitfield'
 require_relative 'message'
-require_relative 'piece'
 
 client = Client.new(ARGV.first)
 client.run!

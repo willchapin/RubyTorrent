@@ -29,6 +29,7 @@ class Message
   def print
     "index: #{ self.payload[0..3].unpack("N")}, offset: #{self.payload[4..8].unpack("N") }"
   end
+  
   def self.parse_stream(peer, message_queue)
     loop do
       begin       

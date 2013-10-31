@@ -2,11 +2,6 @@ class Client
     
   def initialize(path_to_file)
     @torrent = File.open(path_to_file)
-    set_instance_variables
-    set_peers
-  end
-  
-  def set_instance_variables
     @message_queue = Queue.new
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
@@ -15,8 +10,9 @@ class Client
     @id = rand_id # make better later
     @tracker = Tracker.new(@metainfo.announce)
     @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@metainfo.info_hash}#{@id}"
+    set_peers
   end
-  
+    
   def send_tracker_request
     @tracker.make_request(get_tracker_request_params)
   end
@@ -69,7 +65,6 @@ class Client
       Thread.new { keep_alive(peer) }
       Message.send_interested(peer) # change later
     end
-    
   end
   
   def join_threads
