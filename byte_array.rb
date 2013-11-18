@@ -2,6 +2,7 @@ class ByteArray
 
   def initialize(meta_info)
     @length = meta_info.total_size
+#    @length = 100
     @bytes = Array.new([[0, @length - 1, false]])
   end
 

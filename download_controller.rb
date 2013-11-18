@@ -28,23 +28,33 @@ class DownloadController
    #   puts "rarest piece index: #{rarest_piece_index} !!!!"
    #   get_piece(rarest_piece_index)
    # end  
-    
+   
     requests = [] 
     
     0.upto(num_pieces - 2).each do |piece_num|
       0.upto(num_blocks_in_piece - 1).each do |block_num|
-        requests.push({ connection: @peers.sample.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+        peer = @peers.sample
+        start_byte = piece_num * piece_size + BLOCK_SIZE * block_num
+        requests.push({ connection: peer.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+        peer.pending_requests << { start_byte: start_byte }
       end
     end
     
     # last piece
     0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-      requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+      peer = @peers.sample
+      start_byte = ((num_pieces - 1) * piece_size) + (BLOCK_SIZE * block_num)
+      requests.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+      peer.pending_requests << { start_byte: start_byte }
     end
     
     # last block
-    requests.push({ connection: @peers.sample.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
-    requests.shuffle!
+    peer = @peers.sample
+    start_byte = ((num_pieces - 1) * piece_size) + (BLOCK_SIZE * num_full_blocks_in_last_piece) 
+    requests.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
+    peer.pending_requests << { start_byte: start_byte }
+    
+    requests.shuffle
     requests.each { |request| @block_request_queue.push(request) }
   
   end
@@ -52,7 +62,15 @@ class DownloadController
   def incoming_block_process
     loop do
       block = @incoming_block_queue.pop
-      @file_handler.process_block(block)          
+      remove_from_pending(block)       
+      @file_handler.process_block(block)
+    end
+  end
+  
+  def remove_from_pending(block)
+    peer = block.peer
+    peer.pending_requests.delete_if do |hash|
+      hash[:start_byte] == block.start_byte
     end
   end
   
@@ -71,6 +89,6 @@ class DownloadController
     def remove_finished_pieces(bitfield_sum)
       (0...num_pieces).map { |i| (@piece_verification_table[i] - 1).abs * bitfield_sum[i] }
     end
-    
+
 end
 

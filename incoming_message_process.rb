@@ -51,14 +51,13 @@ class IncomingMessageProcess
   # A piece is really a block, not a whole piece.
   def piece(message)
     piece_index, byte_offset, block_data = split_piece_payload(message.payload)
-    puts @metainfo.class
-    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data, @metainfo))
+    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data, @metainfo, message.peer))
   end
   
   def cancel(message)
   end
   
-  # needed for DHT implementation
+  # needed for DHT implementation.
   def port(message)
   end
     
