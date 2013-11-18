@@ -22,13 +22,15 @@ class FileHandler
     
     piece_start = @metainfo.pieces[block.piece_index].start_byte
     piece_end = @metainfo.pieces[block.piece_index].end_byte
-    verify_piece(block.piece_index) if @byte_array.have_all?(piece_start, piece_end)
+    
+    if @byte_array.have_all?(piece_start, piece_end)
+      verify_piece(block.piece_index)
+    end
     
     finish if @byte_array.complete?
   end
   
   def write_block(block)
-    puts block.end_byte
     @file.seek(block.start_byte)
     @file.write(block.data)
   end
@@ -40,9 +42,9 @@ class FileHandler
   def verify_piece(index)
     piece = @metainfo.pieces[index]
     if piece.hash == hash_from_file(piece)
-      puts "verify! #{index}"
+      puts "piece #{index} verified!"
     else
-      puts 'sorry'
+      puts "piece #{index} verification FAILED!"
     end
   end
   

@@ -66,7 +66,7 @@ class ByteArray
   def have_all?(start, fin)
     check_range(start, fin)
     @bytes.each do |i, j, bool|
-      if !bool
+      if bool == false
         if intersect?(start, fin, i, j)
           return false
         end
@@ -76,8 +76,10 @@ class ByteArray
   end
 
   def intersect?(start, fin, i, j)
-    (start >= i and start <= j) or 
-    (fin >= i and fin <= j)
+    start.between?(i, j)     ||
+      fin.between?(i,j)      ||
+      i.between?(start, fin) ||
+      j.between?(start, fin)
   end
   
   def complete?
