@@ -6,7 +6,7 @@ require 'socket'
 require 'timeout'
 require 'pp'
 
-require_relative 'ruby-bencode/lib/bencode.rb'
+require_relative 'bencode/lib/bencode.rb'
 require_relative 'client'
 require_relative 'piece'
 require_relative 'block'

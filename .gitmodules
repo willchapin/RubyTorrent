@@ -1,0 +1,3 @@
+[submodule "bencode"]
+	path = bencode
+	url = https://github.com/dasch/ruby-bencode
