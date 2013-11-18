@@ -21,42 +21,44 @@ class DownloadController
     Thread.new { request_scheduler }
   end
   
+  def get_piece(index)
+    return get_last_piece if index == num_pieces - 1
+    make_initial_requests(index)
+  #  until # piece is finished
+  #  end    
+  end
+
+  def make_initial_requests(piece_index)
+    0.upto(num_blocks_in_piece - 1).each do |block_num|
+      peer = @peers.sample
+      start_byte = piece_index * piece_size + BLOCK_SIZE * block_num
+      @block_request_queue.push({ connection: peer.connection, index: piece_index, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+      peer.pending_requests << { start_byte: start_byte }
+    end
+  end
+
+  def get_last_piece
+    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
+      peer = @peers.sample
+      start_byte = ((num_pieces - 1) * piece_size) + (BLOCK_SIZE * block_num)
+      @block_request_queue.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
+      peer.pending_requests << { start_byte: start_byte }
+    end
+
+    peer = @peers.sample
+    start_byte = ((num_pieces - 1) * piece_size) + (BLOCK_SIZE * num_full_blocks_in_last_piece) 
+    @block_request_queue.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
+    peer.pending_requests << { start_byte: start_byte }
+
+  end
+
   def request_scheduler
-            
+   0.upto(num_pieces).each {|n| get_piece(n)}
    # until done?
    #   rarest_piece_index = sorted_piece_indices[0]
    #   puts "rarest piece index: #{rarest_piece_index} !!!!"
    #   get_piece(rarest_piece_index)
    # end  
-   
-    requests = [] 
-    
-    0.upto(num_pieces - 2).each do |piece_num|
-      0.upto(num_blocks_in_piece - 1).each do |block_num|
-        peer = @peers.sample
-        start_byte = piece_num * piece_size + BLOCK_SIZE * block_num
-        requests.push({ connection: peer.connection, index: piece_num, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
-        peer.pending_requests << { start_byte: start_byte }
-      end
-    end
-    
-    # last piece
-    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-      peer = @peers.sample
-      start_byte = ((num_pieces - 1) * piece_size) + (BLOCK_SIZE * block_num)
-      requests.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * block_num, size: BLOCK_SIZE })
-      peer.pending_requests << { start_byte: start_byte }
-    end
-    
-    # last block
-    peer = @peers.sample
-    start_byte = ((num_pieces - 1) * piece_size) + (BLOCK_SIZE * num_full_blocks_in_last_piece) 
-    requests.push({ connection: peer.connection, index: num_pieces - 1, offset: BLOCK_SIZE * num_full_blocks_in_last_piece, size: last_block_size })
-    peer.pending_requests << { start_byte: start_byte }
-    
-    requests.shuffle
-    requests.each { |request| @block_request_queue.push(request) }
-  
   end
   
   def incoming_block_process

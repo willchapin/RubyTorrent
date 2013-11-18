@@ -1,4 +1,7 @@
 module Helpers
+
+  # classes that include Helpers must have access to
+  # the @metainfo attribute
   
   BLOCK_SIZE = 2**14
   
