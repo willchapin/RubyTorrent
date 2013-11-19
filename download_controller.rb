@@ -47,8 +47,8 @@ class DownloadController
                                  num_pieces - 1,
                                  BLOCK_SIZE * num_full_blocks_in_last_piece,
                                  last_block_size))
-    requests.shuffle!
-    requests.each { |request| @block_request_queue.push(request) }
+
+    requests.shuffle.each { |request| @block_request_queue.push(request) }
   end
 
   def incoming_block_process
