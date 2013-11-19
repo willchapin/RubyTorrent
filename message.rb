@@ -38,6 +38,7 @@ class Message
         payload = has_payload?(id) ? peer.connection.read(length - 1) : nil
         message_queue << self.new(peer, length, id, payload)
       rescue => exception
+        puts "from message: peer had #{peer.pending_requests.length} left to send"
         puts exception
         break
       end
@@ -57,6 +58,5 @@ class Message
     peers.each do |peer| 
       peer.connection.write(length + id + piece_index)
     end
-  
   end
 end

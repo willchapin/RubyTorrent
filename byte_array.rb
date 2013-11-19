@@ -1,7 +1,8 @@
 class ByteArray
 
   def initialize(meta_info)
-    @length = meta_info.total_size
+    @metainfo = meta_info
+    @length = @metainfo.total_size
 #    @length = 100
     @bytes = Array.new([[0, @length - 1, false]])
   end
@@ -95,5 +96,11 @@ class ByteArray
        start > fin
       raise "Byte Array: out of range"
     end
+  end
+
+  def have_piece?(index)
+    piece_start = @metainfo.pieces[index].start_byte
+    piece_end = @metainfo.pieces[index].end_byte
+    have_all?(piece_start, piece_end)    
   end
 end

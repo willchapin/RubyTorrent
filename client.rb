@@ -76,7 +76,8 @@ class Client
       begin
         peer.connection.write("\0\0\0\0")
       rescue
-        puts "keep alive broken"
+        puts "peer #{peer} broken"
+        puts "peer had #{peer.pending_requests.length} more blocks to send"
       end
       sleep(60)
     end

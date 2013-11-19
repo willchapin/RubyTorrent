@@ -13,7 +13,7 @@ class IncomingMessageProcess
   end
   
   def process_message(message)
-    puts "Peer #{message.peer.id} has sent you a #{message.type} message"
+  #  puts "Peer #{message.peer.id} has sent you a #{message.type} message"
     send(message.type, message)
   end
   
@@ -37,7 +37,6 @@ class IncomingMessageProcess
   end
   
   def have(message)
-    puts "have"
     message.peer.bitfield.have_piece(message.payload.unpack("N")[0])
     puts message.peer.bitfield
   end
