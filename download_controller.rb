@@ -24,13 +24,6 @@ class DownloadController
   end
 
   def request_scheduler
-
-   # until done?
-   #   rarest_piece_index = sorted_piece_indices[0]
-   #   puts "rarest piece index: #{rarest_piece_index} !!!!"
-   #   get_piece(rarest_piece_index)
-   # end
-
     requests = []
 
     0.upto(num_pieces - 2).each do |piece_num|
