@@ -59,9 +59,6 @@ class DownloadController
   end
 
   private
-    def remove_finished_pieces(bitfield_sum)
-      (0...num_pieces).map { |i| (@piece_verification_table[i] - 1).abs * bitfield_sum[i] }
-    end
 
     def create_request(connection, index, offset, size)
       { connection: connection, index: index, offset: offset, size: size }
