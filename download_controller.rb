@@ -59,13 +59,6 @@ class DownloadController
   end
 
   private
-    def sorted_piece_indices
-      # refactor? super confusing? exceptionally unclear?
-      bitfield_sum = @peers.map { |peer| Matrix[peer.bitfield.bits] }.reduce(:+).to_a.flatten
-      piece_list = remove_finished_pieces(bitfield_sum)
-      sort_by_index(piece_list)
-    end
-
     def sort_by_index(piece_list)
       piece_list.map.with_index.sort_by(&:first).map(&:last)
     end
