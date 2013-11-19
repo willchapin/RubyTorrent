@@ -27,32 +27,26 @@ class DownloadController
 
     0.upto(num_pieces - 2).each do |piece_num|
       0.upto(num_blocks_in_piece - 1).each do |block_num|
-        requests.push({
-                        connection: @peers.sample.connection,
-                        index: piece_num,
-                        offset: BLOCK_SIZE * block_num,
-                        size: BLOCK_SIZE
-                      })
+        requests.push(create_request(@peers.sample.connection,
+                                     piece_num,
+                                     BLOCK_SIZE * block_num,
+                                     BLOCK_SIZE))
       end
     end
 
     # last piece
     0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-      requests.push({
-                      connection: @peers.sample.connection,
-                      index: num_pieces - 1,
-                      offset: BLOCK_SIZE * block_num,
-                      size: BLOCK_SIZE
-                    })
+      requests.push(create_request(@peers.sample.connection,
+                                   num_pieces - 1,
+                                   BLOCK_SIZE * block_num,
+                                   BLOCK_SIZE))
     end
 
     # last block
-    requests.push({
-                    connection: @peers.sample.connection,
-                    index: num_pieces - 1,
-                    offset: BLOCK_SIZE * num_full_blocks_in_last_piece,
-                    size: last_block_size
-                  })
+    requests.push(create_request(@peers.sample.connection,
+                                 num_pieces - 1,
+                                 BLOCK_SIZE * num_full_blocks_in_last_piece,
+                                 last_block_size))
     requests.shuffle!
     requests.each { |request| @block_request_queue.push(request) }
   end
@@ -80,4 +74,7 @@ class DownloadController
       (0...num_pieces).map { |i| (@piece_verification_table[i] - 1).abs * bitfield_sum[i] }
     end
 
+    def create_request(connection, index, offset, size)
+      { connection: connection, index: index, offset: offset, size: size }
+    end
 end
