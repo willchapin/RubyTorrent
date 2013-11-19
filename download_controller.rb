@@ -17,9 +17,8 @@ class DownloadController
   end
 
   def run!
-    Thread::abort_on_exception = true
-    Thread.new { incoming_block_process }
-    Thread.new { request_scheduler }
+    request_scheduler
+    incoming_block_process
   end
 
   def request_scheduler
