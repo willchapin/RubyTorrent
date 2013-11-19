@@ -14,9 +14,7 @@ class DownloadController
     @peers = peers
     @byte_array = ByteArray.new(@metainfo)
     @file_handler = FileHandler.new(@metainfo, @byte_array)
-  end
 
-  def run!
     request_scheduler
     incoming_block_process
   end
