@@ -1,3 +1,3 @@
-[submodule "bencode"]
-	path = bencode
+[submodule "ruby-bencode"]
+	path = ruby-bencode
 	url = https://github.com/dasch/ruby-bencode
