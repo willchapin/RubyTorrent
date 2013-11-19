@@ -12,6 +12,8 @@ class BlockRequestProcess
     end
   end
   
+  private
+
   def compose_request(request)
       msg_length = "\0\0\0\x0d"
       id = "\6"
