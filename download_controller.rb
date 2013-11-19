@@ -4,8 +4,8 @@ class DownloadController
   
   require 'pry'
   require 'matrix'
-  include Helpers
-  
+  include Helpers # worryingly vague name
+
   BLOCK_SIZE = 2**14
   
   def initialize(metainfo, block_request_queue, incoming_block_queue, peers)
