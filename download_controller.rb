@@ -2,7 +2,6 @@ require_relative 'helpers'
 
 class DownloadController
 
-  require 'pry'
   require 'matrix'
   include Helpers # worryingly vague name
 
