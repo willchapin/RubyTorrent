@@ -51,8 +51,7 @@ class DownloadController
   end
 
   def incoming_block_process
-    loop do
-      block = @incoming_block_queue.pop
+    while block = @incoming_block_queue.pop
       @file_handler.process_block(block)
     end
   end
