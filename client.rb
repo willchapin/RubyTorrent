@@ -7,19 +7,25 @@ class Client
     @incoming_block_queue = Queue.new
     @peers = []
     @metainfo = MetaInfo.new(BEncode::Parser.new(@torrent).parse!)
-    @id = rand_id # make better later
+    @id = self.class.rand_id # make better later
     @tracker = Tracker.new(@metainfo.announce)
     @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@metainfo.info_hash}#{@id}"
     set_peers
   end
-    
+
+  def self.rand_id
+    result = ""
+    20.times { result << rand(9).to_s }
+    result
+  end
+
   def send_tracker_request
     @tracker.make_request(get_tracker_request_params)
   end
   
   def tracker_request_params
-    { info_hash:    @metainfo.info_hash,          
-      peer_id:      rand_id,
+    { info_hash:    @metainfo.info_hash,
+      peer_id:      self.class.rand_id,
       port:         '6881',
       uploaded:     '0',
       downloaded:   '0',
@@ -45,12 +51,6 @@ class Client
     rescue => exception
       puts exception
     end
-  end
-
-  def rand_id
-    result = ""
-    20.times { result << rand(9).to_s }
-    result
   end
 
   def run!
