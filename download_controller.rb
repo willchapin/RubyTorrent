@@ -59,10 +59,6 @@ class DownloadController
   end
 
   private
-    def sort_by_index(piece_list)
-      piece_list.map.with_index.sort_by(&:first).map(&:last)
-    end
-
     def remove_finished_pieces(bitfield_sum)
       (0...num_pieces).map { |i| (@piece_verification_table[i] - 1).abs * bitfield_sum[i] }
     end
