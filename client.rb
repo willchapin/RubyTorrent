@@ -37,10 +37,8 @@ class Client
 
   def set_peers
     peers = @tracker.make_request(tracker_request_params)["peers"].scan(/.{6}/)
-    peers.map! do |peer|
-      peer.unpack('a4n')
-    end
-    peers.each do |ip_string, port|
+    unpacked_peers = peers.map {|p| p.unpack('a4n') }
+    unpacked_peers.each do |ip_string, port|
       set_peer(ip_string, port)
     end
   end
