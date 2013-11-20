@@ -7,7 +7,7 @@ class DownloadController
 
   BLOCK_SIZE = 2**14
 
-  def initialize(metainfo, block_request_queue, incoming_block_queue, peers)
+  def initialize(block_request_queue, incoming_block_queue, peers, metainfo)
     @metainfo = metainfo
     @block_request_queue = block_request_queue
     @incoming_block_queue = incoming_block_queue
