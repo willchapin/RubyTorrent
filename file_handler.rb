@@ -3,9 +3,9 @@ require 'fileutils'
 class FileHandler
   include FileUtils
 
-  def initialize(metainfo, byte_array)
+  def initialize(metainfo)
     @metainfo = metainfo
-    @byte_array = byte_array
+    @byte_array = ByteArray.new(@metainfo)
     @temp_name = "temp/" + ('a'..'z').to_a.shuffle.take(10).join
     @file = init_file
   end
