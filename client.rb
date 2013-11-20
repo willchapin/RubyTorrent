@@ -53,9 +53,9 @@ class Client
 
     Thread::abort_on_exception = true # remove later?
     Thread.new {
-      connect(message_queue,
-              IncomingMessageProcess.new(@metainfo.piece_length),
-              incoming_block_queue)
+      pipe(message_queue,
+           IncomingMessageProcess.new(@metainfo.piece_length),
+           incoming_block_queue)
     }
 
     Thread.new { DownloadController.new(block_request_queue, incoming_block_queue, @peers, @metainfo) }
@@ -87,7 +87,7 @@ class Client
     thread == Thread.current
   end
 
-  def connect(input, processor, output)
+  def pipe(input, processor, output=nil)
     while m = input.pop()
       processor.pipe(m, output)
     end
