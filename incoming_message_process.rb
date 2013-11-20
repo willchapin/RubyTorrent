@@ -4,9 +4,7 @@ class IncomingMessageProcess
     @incoming_block_queue = incoming_block_queue
     @message_queue = message_queue
     @metainfo = metainfo
-  end
 
-  def run!
     loop do
       process_message(@message_queue.pop)
     end

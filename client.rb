@@ -56,7 +56,7 @@ class Client
   def run!
 
     Thread::abort_on_exception = true # remove later?
-    Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue, @metainfo).run! }
+    Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue, @metainfo) }
     Thread.new { DownloadController.new(@metainfo, @block_request_queue, @incoming_block_queue, @peers) }
     Thread.new { BlockRequestProcess.new(@block_request_queue) }
 
