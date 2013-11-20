@@ -52,6 +52,12 @@ class Client
     incoming_block_queue = Queue.new
 
     Thread::abort_on_exception = true # remove later?
+
+    Thread.new {
+      pipe(BlockRequestQueueCreator.create(@peers, @metainfo),
+           BlockRequestProcess.new)
+    }
+
     Thread.new {
       pipe(message_queue,
            IncomingMessageProcess.new(@metainfo.piece_length),
@@ -59,8 +65,6 @@ class Client
     }
 
     Thread.new { pipe(incoming_block_queue, FileHandler.new(@metainfo)) }
-    Thread.new { DownloadController.new(block_request_queue, @peers, @metainfo) }
-    Thread.new { pipe(block_request_queue, BlockRequestProcess.new) }
 
     @peers.each do |peer|
       Thread.new { Message.parse_stream(peer, message_queue) }
