@@ -14,9 +14,7 @@ class Client
   end
 
   def self.rand_id
-    result = ""
-    20.times { result << rand(9).to_s }
-    result
+    20.times.reduce("") { |a, _| a + rand(9).to_s }
   end
 
   def send_tracker_request
