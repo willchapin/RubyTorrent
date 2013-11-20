@@ -58,18 +58,9 @@ class Client
            incoming_block_queue)
     }
 
-    Thread.new {
-      pipe(incoming_block_queue,
-           FileHandler.new(@metainfo))
-    }
-
+    Thread.new { pipe(incoming_block_queue, FileHandler.new(@metainfo)) }
     Thread.new { DownloadController.new(block_request_queue, @peers, @metainfo) }
-
-    Thread.new {
-      pipe(block_request_queue,
-           BlockRequestProcess.new
-           ) # no output: end
-    }
+    Thread.new { pipe(block_request_queue, BlockRequestProcess.new) }
 
     @peers.each do |peer|
       Thread.new { Message.parse_stream(peer, message_queue) }
