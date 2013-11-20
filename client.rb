@@ -1,9 +1,6 @@
 class Client
 
   def initialize(path_to_file)
-    @message_queue = Queue.new
-    @block_request_queue = Queue.new
-    @incoming_block_queue = Queue.new
     @peers = []
     torrent = File.open(path_to_file)
     @metainfo = MetaInfo.new(BEncode::Parser.new(torrent).parse!)
@@ -50,14 +47,17 @@ class Client
   end
 
   def run!
+    message_queue = Queue.new
+    block_request_queue = Queue.new
+    incoming_block_queue = Queue.new
 
     Thread::abort_on_exception = true # remove later?
-    Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue, @metainfo) }
-    Thread.new { DownloadController.new(@metainfo, @block_request_queue, @incoming_block_queue, @peers) }
-    Thread.new { BlockRequestProcess.new(@block_request_queue) }
+    Thread.new { IncomingMessageProcess.new(message_queue, incoming_block_queue, @metainfo) }
+    Thread.new { DownloadController.new(@metainfo, block_request_queue, incoming_block_queue, @peers) }
+    Thread.new { BlockRequestProcess.new(block_request_queue) }
 
     @peers.each do |peer|
-      Thread.new { Message.parse_stream(peer, @message_queue) }
+      Thread.new { Message.parse_stream(peer, message_queue) }
       Thread.new { keep_alive(peer) }
       Message.send_interested(peer) # change later
     end
