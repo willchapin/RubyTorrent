@@ -1,7 +1,5 @@
 module BlockRequestQueueCreator
 
-  require 'matrix'
-
   BLOCK_SIZE = 2**14
 
   def self.create(peers, metainfo)
