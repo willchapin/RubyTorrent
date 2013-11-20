@@ -48,7 +48,6 @@ class Client
 
   def run!
     message_queue = Queue.new
-    block_request_queue = Queue.new
     incoming_block_queue = Queue.new
 
     Thread::abort_on_exception = true # remove later?
