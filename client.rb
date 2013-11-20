@@ -58,7 +58,7 @@ class Client
     Thread::abort_on_exception = true # remove later?
     Thread.new { IncomingMessageProcess.new(@message_queue, @incoming_block_queue, @metainfo).run! }
     Thread.new { DownloadController.new(@metainfo, @block_request_queue, @incoming_block_queue, @peers) }
-    Thread.new { BlockRequestProcess.new(@block_request_queue).run! }
+    Thread.new { BlockRequestProcess.new(@block_request_queue) }
 
     @peers.each do |peer|
       Thread.new { Message.parse_stream(peer, @message_queue) }

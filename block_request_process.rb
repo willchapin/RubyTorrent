@@ -1,17 +1,13 @@
 class BlockRequestProcess
 
   def initialize(block_request_queue)
-    @queue = block_request_queue
-  end
-  
-  def run!
     loop do
-      request = @queue.pop
+      request = block_request_queue.pop
       connection = request[:connection]
       connection.write(compose_request(request))
     end
   end
-  
+
   private
 
   def compose_request(request)
