@@ -1,11 +1,7 @@
 class BlockRequestProcess
-
-  def initialize(block_request_queue)
-    loop do
-      request = block_request_queue.pop
-      connection = request[:connection]
-      connection.write(compose_request(request))
-    end
+  def pipe(request)
+    connection = request[:connection]
+    connection.write(compose_request(request))
   end
 
   private
