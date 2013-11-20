@@ -5,11 +5,10 @@ class Client
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
     @peers = []
-    @metainfo = MetaInfo.new(BEncode::Parser.new(@torrent).parse!)
     torrent = File.open(path_to_file)
+    @metainfo = MetaInfo.new(BEncode::Parser.new(torrent).parse!)
     @id = self.class.rand_id # make better later
     @tracker = Tracker.new(@metainfo.announce)
-    @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@metainfo.info_hash}#{@id}"
     set_peers
   end
 
@@ -43,7 +42,8 @@ class Client
 
   def set_peer(ip_string, port)
     begin
-      Timeout::timeout(1) { @peers << Peer.new(ip_string, port, @handshake, @metainfo.info_hash) }
+      handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@metainfo.info_hash}#{@id}"
+      Timeout::timeout(1) { @peers << Peer.new(ip_string, port, handshake, @metainfo.info_hash) }
     rescue => exception # try another peer here? Try this peer again?
       puts exception
     end
