@@ -52,7 +52,7 @@ class Client
     incoming_block_queue = Queue.new
 
     Thread::abort_on_exception = true # remove later?
-    Thread.new { IncomingMessageProcess.new(message_queue, incoming_block_queue, @metainfo) }
+    Thread.new { IncomingMessageProcess.new(message_queue, incoming_block_queue, @metainfo.piece_length) }
     Thread.new { DownloadController.new(@metainfo, block_request_queue, incoming_block_queue, @peers) }
     Thread.new { BlockRequestProcess.new(block_request_queue) }
 

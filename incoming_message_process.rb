@@ -1,8 +1,8 @@
 class IncomingMessageProcess
 
-  def initialize(message_queue, incoming_block_queue, metainfo)
+  def initialize(message_queue, incoming_block_queue, piece_length)
     @incoming_block_queue = incoming_block_queue
-    @metainfo = metainfo
+    @piece_length = piece_length
 
     loop do
       process_message(message_queue.pop)
@@ -48,8 +48,7 @@ class IncomingMessageProcess
   # A piece is really a block, not a whole piece.
   def piece(message)
     piece_index, byte_offset, block_data = split_piece_payload(message.payload)
-    puts @metainfo.class
-    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data, @metainfo.piece_length))
+    @incoming_block_queue.push(Block.new(piece_index, byte_offset, block_data, @piece_length))
   end
 
   def cancel(message)
