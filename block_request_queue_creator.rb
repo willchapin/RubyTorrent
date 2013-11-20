@@ -29,7 +29,7 @@ module BlockRequestQueueCreator
                                  last_block_size(metainfo)))
 
     queue = Queue.new
-    requests.shuffle.each { |request| queue.push(request) }
+    requests.each { |request| queue.push(request) }
     queue
   end
 
