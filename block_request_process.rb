@@ -1,17 +1,11 @@
 class BlockRequestProcess
+  def pipe(request)
+    connection = request[:connection]
+    connection.write(compose_request(request))
+  end
 
-  def initialize(block_request_queue)
-    @queue = block_request_queue
-  end
-  
-  def run!
-    loop do
-      request = @queue.pop
-      connection = request[:connection]
-      connection.write(compose_request(request))
-    end
-  end
-  
+  private
+
   def compose_request(request)
       msg_length = "\0\0\0\x0d"
       id = "\6"
