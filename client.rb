@@ -52,7 +52,12 @@ class Client
     incoming_block_queue = Queue.new
 
     Thread::abort_on_exception = true # remove later?
-    Thread.new { IncomingMessageProcess.new(message_queue, incoming_block_queue, @metainfo.piece_length) }
+    Thread.new {
+      connect(message_queue,
+              IncomingMessageProcess.new(@metainfo.piece_length),
+              incoming_block_queue)
+    }
+
     Thread.new { DownloadController.new(block_request_queue, incoming_block_queue, @peers, @metainfo) }
     Thread.new { BlockRequestProcess.new(block_request_queue) }
 
@@ -80,5 +85,11 @@ class Client
 
   def current_thread?(thread)
     thread == Thread.current
+  end
+
+  def connect(input, processor, output)
+    while m = input.pop()
+      processor.pipe(m, output)
+    end
   end
 end

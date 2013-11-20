@@ -1,15 +1,9 @@
 class IncomingMessageProcess
-
-  def initialize(message_queue, incoming_block_queue, piece_length)
-    @incoming_block_queue = incoming_block_queue
+  def initialize(piece_length)
     @piece_length = piece_length
-
-    loop do
-      process_message(message_queue.pop)
-    end
   end
 
-  def process_message(message)
+  def pipe(message, output)
     puts "Peer #{message.peer.id} has sent you a #{message.type} message"
     if message.type == :piece
       piece_index, byte_offset, block_data = split_piece_payload(message.payload)
