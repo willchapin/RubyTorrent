@@ -1,12 +1,12 @@
 class Client
 
   def initialize(path_to_file)
-    @torrent = File.open(path_to_file)
     @message_queue = Queue.new
     @block_request_queue = Queue.new
     @incoming_block_queue = Queue.new
     @peers = []
     @metainfo = MetaInfo.new(BEncode::Parser.new(@torrent).parse!)
+    torrent = File.open(path_to_file)
     @id = self.class.rand_id # make better later
     @tracker = Tracker.new(@metainfo.announce)
     @handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@metainfo.info_hash}#{@id}"
