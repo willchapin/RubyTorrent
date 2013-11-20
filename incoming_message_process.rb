@@ -2,11 +2,10 @@ class IncomingMessageProcess
 
   def initialize(message_queue, incoming_block_queue, metainfo)
     @incoming_block_queue = incoming_block_queue
-    @message_queue = message_queue
     @metainfo = metainfo
 
     loop do
-      process_message(@message_queue.pop)
+      process_message(message_queue.pop)
     end
   end
 
