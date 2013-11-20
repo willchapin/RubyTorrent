@@ -89,7 +89,11 @@ class Client
 
   def pipe(input, processor, output=nil)
     while m = input.pop()
-      processor.pipe(m, output)
+      if output
+        processor.pipe(m, output)
+      else
+        processor.pipe(m)
+      end
     end
   end
 end
