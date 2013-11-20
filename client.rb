@@ -25,7 +25,7 @@ class Client
 
   def tracker_request_params
     { info_hash:    @metainfo.info_hash,
-      peer_id:      self.class.rand_id,
+      peer_id:      @id,
       port:         '6881',
       uploaded:     '0',
       downloaded:   '0',
