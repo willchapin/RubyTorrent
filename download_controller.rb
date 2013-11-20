@@ -7,15 +7,12 @@ class DownloadController
 
   BLOCK_SIZE = 2**14
 
-  def initialize(block_request_queue, incoming_block_queue, peers, metainfo)
+  def initialize(block_request_queue, peers, metainfo)
     @metainfo = metainfo
     @block_request_queue = block_request_queue
-    @incoming_block_queue = incoming_block_queue
     @peers = peers
-    @file_handler = FileHandler.new(@metainfo)
 
     request_scheduler
-    incoming_block_process
   end
 
   def request_scheduler
@@ -45,12 +42,6 @@ class DownloadController
                                  last_block_size))
 
     requests.shuffle.each { |request| @block_request_queue.push(request) }
-  end
-
-  def incoming_block_process
-    while block = @incoming_block_queue.pop
-      @file_handler.process_block(block)
-    end
   end
 
   private

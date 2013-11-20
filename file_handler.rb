@@ -16,7 +16,7 @@ class FileHandler
     File.open(@temp_name, "r+")
   end
 
-  def process_block(block)
+  def pipe(block)
     write_block(block)
     record_block(block)
 
