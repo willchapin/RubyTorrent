@@ -66,6 +66,7 @@ class FileHandler
     else
       move_file
     end
+    abort("byebye!")
   end
 
   def split_files

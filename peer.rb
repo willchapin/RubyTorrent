@@ -1,8 +1,9 @@
 class Peer
   
-  attr_accessor :connection, :bitfield, :state, :id
+  attr_accessor :connection, :bitfield, :state, :id, :pending_requests
 
   def initialize(ip_string, port, handshake, correct_info_hash)
+    @pending_requests = []
     @connection = TCPSocket.new(IPAddr.new_ntoh(ip_string).to_s, port)
     @state = { is_choking: true, is_choked: true, is_interested: false, is_interesting: false }
     @correct_info_hash = correct_info_hash

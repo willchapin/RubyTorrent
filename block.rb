@@ -1,7 +1,9 @@
 class Block
-  attr_accessor :start_byte, :end_byte, :data, :piece_index
+  attr_accessor :start_byte, :end_byte, :data, :piece_index, :peer, :offset
 
-  def initialize(piece_index, offset, data, piece_length)
+  def initialize(piece_index, offset, data, piece_length, peer)
+    @offset = offset
+    @peer = peer
     @data = data
     @piece_index = piece_index
     @offset = offset
@@ -24,3 +26,5 @@ class Block
     end
 
 end
+
+  

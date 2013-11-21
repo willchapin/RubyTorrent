@@ -49,11 +49,18 @@ class Client
   def run!
     message_queue = Queue.new
     incoming_block_queue = Queue.new
-
+    block_request_scheduler = BlockRequestScheduler.new(@peers, @metainfo)
+    
     Thread::abort_on_exception = true # remove later?
 
+    @peers.each do |peer|
+      Thread.new { Message.parse_stream(peer, message_queue) }
+      Thread.new { keep_alive(peer) }
+      Message.send_interested(peer) # change later
+    end
+
     Thread.new {
-      pipe(BlockRequestQueueCreator.create(@peers, @metainfo),
+      pipe(block_request_scheduler.request_queue,
            BlockRequestProcess.new)
     }
 
@@ -63,13 +70,12 @@ class Client
            incoming_block_queue)
     }
 
-    Thread.new { pipe(incoming_block_queue, FileHandler.new(@metainfo)) }
-
-    @peers.each do |peer|
-      Thread.new { Message.parse_stream(peer, message_queue) }
-      Thread.new { keep_alive(peer) }
-      Message.send_interested(peer) # change later
-    end
+    Thread.new {
+      multi_pipe(incoming_block_queue,
+                 FileHandler.new(@metainfo),
+                 block_request_scheduler)
+    }
+    
   end
 
   def join_threads
@@ -91,10 +97,16 @@ class Client
     thread == Thread.current
   end
 
+  def multi_pipe(input, *processors)
+    while m = input.pop
+      processors.each { |p| p.pipe(m) }
+    end
+  end
+
   def pipe(input, processor, output=nil)
-    while m = input.pop()
+    while m = input.pop
       if output
-        processor.pipe(m, output)
+         processor.pipe(m, output)
       else
         processor.pipe(m)
       end
