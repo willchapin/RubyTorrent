@@ -41,7 +41,7 @@ class Client
     begin
       handshake = "\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00#{@metainfo.info_hash}#{@id}"
       Timeout::timeout(1) { @peers << Peer.new(ip_string, port, handshake, @metainfo.info_hash) }
-    rescue => exception # try another peer here? Try this peer again?
+    rescue => exception
       puts exception
     end
   end
@@ -51,12 +51,12 @@ class Client
     incoming_block_queue = Queue.new
     block_request_scheduler = BlockRequestScheduler.new(@peers, @metainfo)
     
-    Thread::abort_on_exception = true # remove later?
+    Thread::abort_on_exception = true
 
     @peers.each do |peer|
       Thread.new { Message.parse_stream(peer, message_queue) }
       Thread.new { keep_alive(peer) }
-      Message.send_interested(peer) # change later
+      Message.send_interested(peer)
     end
 
     Thread.new {

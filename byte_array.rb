@@ -9,7 +9,6 @@ class ByteArray
     check_range(start,fin)
     start_item, end_item = boundry_items(start, fin)
     
-    # so horrible
     start_index = @bytes.index(start_item)
     end_index = @bytes.index(end_item)
 
@@ -29,8 +28,6 @@ class ByteArray
       result[1] = [start, fin, true]
       result[2] = [fin + 1, end_item[1], end_item[2]]
     end
-
-    # hacky edge case fix
         
     result.map! do |item|
       unless item.nil?
