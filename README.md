@@ -19,7 +19,7 @@ RUN
 To download a file using RubyTorrent, run the following from the root directory:
 
 ```
-ruby lib/ruby_torrent.rb path/to/torrent_file 
+ruby lib/ruby_torrent.rb <path/to/torrent_file> <path/to/downloads_folder> 
 ```
 
 The downloaded file will be placed in RubyTorrent/downloads/
