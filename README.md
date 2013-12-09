@@ -25,5 +25,5 @@ The downloaded file will be placed in RubyTorrent/downloads/
 
 REQUIREMENTS
 ----
-Ruby 2.0
+Ruby 2.0 \n
 The torrent file must have a reference to a tracker. DTH torrent files are not yet supported.
