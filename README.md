@@ -1,7 +1,7 @@
 RubyTorrent
 ===========
 
-A simple BitTorrent client in Ruby
+A simple BitTorrent client in Ruby. This client can download single- or multi-file torrents from multiple peers concurrently.
 
 INSTALL
 ----
@@ -22,3 +22,8 @@ ruby lib/ruby_torrent.rb path/to/torrent_file
 ```
 
 The downloaded file will be placed in RubyTorrent/downloads/
+
+REQUIREMENTS
+----
+Ruby 2.0
+The torrent file must have a reference to a tracker. DTH torrent files are not yet supported.
