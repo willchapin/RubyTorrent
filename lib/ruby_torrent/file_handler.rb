@@ -12,7 +12,7 @@ class FileHandler
   end
 
   def init_file
-    make_dir("temp") unless File.directory?("temp")
+    Dir.mkdir("temp") unless File.directory?("temp")
     File.open(@temp_name, "w+")
     File.open(@temp_name, "r+")
   end
