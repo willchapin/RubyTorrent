@@ -21,6 +21,6 @@ require_relative 'ruby_torrent/peer'
 require_relative 'ruby_torrent/bitfield'
 require_relative 'ruby_torrent/message'
 
-client = Client.new(ARGV.first)
+client = Client.new(ARGV[0], ARGV[1])
 client.run!
 client.join_threads

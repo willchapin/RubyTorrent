@@ -1,9 +1,10 @@
 class MetaInfo
     
-  attr_accessor :info_hash, :announce, :number_of_pieces, :pieces, :files, :total_size, :piece_length, :pieces_hash, :folder
+  attr_accessor :info_hash, :announce, :number_of_pieces, :pieces, :files, :total_size, :piece_length, :pieces_hash, :folder, :download_folder
   
-  def initialize(meta_info)
+  def initialize(meta_info, download_folder)
     @meta_info = meta_info
+    @download_folder = download_folder
     @piece_length = @meta_info["info"]["piece length"]
     @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
     @pieces_hash = @meta_info["info"]["pieces"]

@@ -8,6 +8,7 @@ class FileHandler
     @byte_array = ByteArray.new(@metainfo)
     @temp_name = "temp/" + ('a'..'z').to_a.shuffle.take(10).join
     @file = init_file
+    @download_path = download_path
   end
 
   def init_file
@@ -60,21 +61,20 @@ class FileHandler
   def finish
     puts "finishing!"
     @file.close
+    make_download_dir
     if @metainfo.is_multi_file?
       split_files
       remove_temp_file
     else
       move_file
     end
-    abort("byebye!")
+    abort("File download successful!")
   end
 
   def split_files
-    dir = "downloads/" + @metainfo.folder
-    make_dir(dir) unless File.directory?(dir)
     File.open(@temp_name, "r") do |temp_file|
       @metainfo.files.each do |file_info|
-        File.open(dir + "/" + file_info[:name], "w") do |out_file|
+        File.open(@download_path +  file_info[:name], "w") do |out_file|
           out_file.write(temp_file.read(file_info[:length]))
         end
       end
@@ -82,15 +82,24 @@ class FileHandler
   end
 
   def move_file
-    make_dir("downloads") unless File.directory?("downloads")
-    FileUtils.mv(@temp_name, "downloads/" + @metainfo.files[0][:name])
+    FileUtils.mv(@temp_name, @download_path + @metainfo.files[0][:name])
   end
-
-  def make_dir(dir)
-    Dir.mkdir(dir)
+  
+  def make_download_dir  
+    unless File.directory?(@download_path)
+      Dir.mkdir(@download_path)
+    end
   end
-
+  
   def remove_temp_file
     File.delete(@temp_name)
   end
+
+  def download_path
+    if @metainfo.download_folder[-1] == "/"
+      return @metainfo.download_folder
+    end
+    @metainfo.download_folder + "/"
+  end
+  
 end

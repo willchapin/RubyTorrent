@@ -1,10 +1,10 @@
 class Client
 
-  def initialize(path_to_file)
+  def initialize(path_to_file, download_folder)
     @peers = []
     torrent = File.open(path_to_file)
-    @metainfo = MetaInfo.new(BEncode::Parser.new(torrent).parse!)
-    @id = self.class.rand_id # make better later
+    @metainfo = MetaInfo.new(BEncode::Parser.new(torrent).parse!, download_folder)
+    @id = self.class.rand_id # TODO: assign meaningful id
     @tracker = Tracker.new(@metainfo.announce)
     set_peers
   end
