@@ -45,7 +45,7 @@ class MetaInfo
     if is_multi_file?
       set_multi_files
     else
-      set_single_file
+      add_file(@info["name"], @info["length"], 0, @info["length"] - 1)
     end
   end
 
@@ -59,14 +59,6 @@ class MetaInfo
       
       start_byte + file["length"]
     end
-  end
-
-  def set_single_file
-    name =  @info["name"]
-    length = @info["length"]
-    start_byte = 0
-    end_byte =  @info["length"] - 1
-    add_file(name, length, start_byte, end_byte)
   end
   
   def add_file(name, length, start, fin)
