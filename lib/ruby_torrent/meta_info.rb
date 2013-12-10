@@ -33,28 +33,62 @@ class MetaInfo
   def set_single_file_size
     @total_size = @meta_info["info"]["length"]
   end
-  
-  
+
   def set_folder
     @folder = is_multi_file? ? @meta_info["info"]["name"] : nil
   end
-  
+
   def set_files
     @files = []
     if is_multi_file?
-      @meta_info["info"]["files"].inject(0) do |start_byte, file| 
-        @files << { name: file["path"][0],
-                    length: file["length"],
-                    start_byte: start_byte,
-                    end_byte: start_byte + file["length"] - 1
-                  }
-        start_byte + file["length"]
-      end
+      set_multi_files
     else
-      @files << { name: @meta_info["info"]["name"],
-                  length: @meta_info["info"]["length"],
-                  start_byte: 0,
-                  end_byte: @meta_info["info"]["length"] - 1 }
+      set_single_file
+    end
+  end
+
+  def set_multi_files
+    @meta_info["info"]["files"].inject(0) do |start_byte, file| 
+      name = file["path"][0]
+      length = file["length"]
+      start_byte = start_byte
+      end_byte = start_byte + file["length"] - 1
+      add_file(name, length, start_byte, end_byte)
+      
+      start_byte + file["length"]
+    end
+  end
+
+  def set_single_file
+    name =  @meta_info["info"]["name"]
+    length = @meta_info["info"]["length"]
+    start_byte = 0
+    end_byte =  @meta_info["info"]["length"] - 1
+    add_file(name, length, start_byte, end_byte)
+  end
+  
+  
+  def add_file(name, length, start_byte, end_byte)
+    @files << {
+      name: name,
+      length: length,
+      start_byte: start_byte,
+      end_byte: end_byte
+    }
+  end
+ 
+  def set_pieces
+    @pieces = []
+    (0...@number_of_pieces).each do |i|
+      index = i
+      start_byte = i * @piece_length 
+      if i == @number_of_pieces - 1
+        end_byte = @total_size - 1
+      else
+        end_byte = start_byte + @piece_length - 1
+      end
+      hash = @meta_info["info"]["pieces"][20*i...20*(i+1)]
+      @pieces << Piece.new(index, start_byte, end_byte, hash)
     end
   end
   
