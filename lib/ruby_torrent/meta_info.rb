@@ -33,13 +33,22 @@ class MetaInfo
   
   def set_total_size
     if is_multi_file?
-      @total_size = @meta_info["info"]["files"].inject(0) do |start_byte, file| 
-        start_byte + file["length"]
-      end
+      set_multi_file_size
     else
-      @total_size = @meta_info["info"]["length"]
+      set_single_file_size
     end
   end
+  
+  def set_multi_file_size
+    @total_size = @meta_info["info"]["files"].inject(0) do |start_byte, file| 
+      start_byte + file["length"]
+    end
+  end
+  
+  def set_single_file_size
+    @total_size = @meta_info["info"]["length"]
+  end
+  
   
   def set_folder
     @folder = is_multi_file? ? @meta_info["info"]["name"] : nil
