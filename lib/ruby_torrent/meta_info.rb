@@ -67,8 +67,8 @@ class MetaInfo
     add_file(name, length, start_byte, end_byte)
   end
   
-  def add_file(name, length, start, end)
-    @files << { name: name, length: length, start_byte: start, end_byte: end }
+  def add_file(name, length, start, fin)
+    @files << { name: name, length: length, start_byte: start, end_byte: fin }
   end
  
   def set_pieces
