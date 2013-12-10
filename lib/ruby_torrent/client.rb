@@ -4,12 +4,12 @@ class Client
     @peers = []
     torrent = File.open(path_to_file)
     @metainfo = MetaInfo.new(BEncode::Parser.new(torrent).parse!, download_folder)
-    @id = self.class.rand_id # TODO: assign meaningful id
+    @id = rand_id # TODO: assign meaningful id
     @tracker = Tracker.new(@metainfo.announce)
     set_peers
   end
 
-  def self.rand_id
+  def rand_id
     20.times.reduce("") { |a, _| a + rand(9).to_s }
   end
 
