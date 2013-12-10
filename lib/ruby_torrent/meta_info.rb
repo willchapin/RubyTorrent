@@ -1,6 +1,8 @@
 class MetaInfo
 
-  attr_accessor :info_hash, :announce, :number_of_pieces, :pieces, :files, :total_size, :piece_length, :pieces_hash, :folder, :download_folder
+  attr_accessor :info_hash, :announce, :number_of_pieces,
+                :pieces, :files, :total_size, :piece_length,
+                :pieces_hash, :folder, :download_folder
   
   def initialize(meta_info, download_folder)
     @meta_info = meta_info
