@@ -79,19 +79,27 @@ class MetaInfo
  
   def set_pieces
     @pieces = []
-    (0...@number_of_pieces).each do |i|
-      index = i
-      start_byte = i * @piece_length 
-      if i == @number_of_pieces - 1
-        end_byte = @total_size - 1
-      else
-        end_byte = start_byte + @piece_length - 1
-      end
-      hash = @meta_info["info"]["pieces"][20*i...20*(i+1)]
+    (0...@number_of_pieces).each do |index|
+      start_byte = index * @piece_length 
+      end_byte = get_end_byte(start_byte, index)
+      hash = get_correct_hash(index)
       @pieces << Piece.new(index, start_byte, end_byte, hash)
     end
   end
-  
+
+  def get_end_byte(start_byte, index)
+    return @total_size - 1 if last_piece?(index)
+    start_byte + @piece_length - 1
+  end
+    
+  def last_piece?(index)
+    index == @number_of_pieces - 1
+  end
+
+  def get_correct_hash(index)
+    @meta_info["info"]["pieces"][20 * index...20 * (index+1)]
+  end
+    
   def is_multi_file?
     !@meta_info["info"]["files"].nil?
   end
