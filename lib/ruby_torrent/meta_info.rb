@@ -1,5 +1,5 @@
 class MetaInfo
-    
+
   attr_accessor :info_hash, :announce, :number_of_pieces, :pieces, :files, :total_size, :piece_length, :pieces_hash, :folder, :download_folder
   
   def initialize(meta_info, download_folder)
@@ -15,22 +15,7 @@ class MetaInfo
     set_files
     set_pieces
   end
-  
-  def set_pieces
-    @pieces = []
-    (0...@number_of_pieces).each do |i|
-      index = i
-      start_byte = i * @piece_length 
-      if i == @number_of_pieces - 1
-        end_byte = @total_size - 1
-      else
-        end_byte = start_byte + @piece_length - 1
-      end
-      hash = @meta_info["info"]["pieces"][20*i...20*(i+1)]
-      @pieces << Piece.new(index, start_byte, end_byte, hash)
-    end
-  end
-  
+
   def set_total_size
     if is_multi_file?
       set_multi_file_size
@@ -38,7 +23,7 @@ class MetaInfo
       set_single_file_size
     end
   end
-  
+
   def set_multi_file_size
     @total_size = @meta_info["info"]["files"].inject(0) do |start_byte, file| 
       start_byte + file["length"]
