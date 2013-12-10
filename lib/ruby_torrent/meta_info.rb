@@ -5,13 +5,13 @@ class MetaInfo
                 :pieces_hash, :folder, :download_folder
   
   def initialize(meta_info, download_folder)
-    @meta_info = meta_info
+    @info = meta_info["info"]
     @download_folder = download_folder
-    @piece_length = @meta_info["info"]["piece length"]
-    @info_hash = Digest::SHA1.new.digest(@meta_info['info'].bencode)
-    @pieces_hash = @meta_info["info"]["pieces"]
-    @announce = @meta_info["announce"]
-    @number_of_pieces = @meta_info["info"]["pieces"].length/20
+    @piece_length = @info["piece length"]
+    @info_hash = Digest::SHA1.new.digest(@info.bencode)
+    @pieces_hash = @info["pieces"]
+    @announce = meta_info["announce"]
+    @number_of_pieces = @info["pieces"].length/20
     set_total_size
     set_folder
     set_files
@@ -27,17 +27,17 @@ class MetaInfo
   end
 
   def set_multi_file_size
-    @total_size = @meta_info["info"]["files"].inject(0) do |start_byte, file| 
+    @total_size = @info["files"].inject(0) do |start_byte, file| 
       start_byte + file["length"]
     end
   end
   
   def set_single_file_size
-    @total_size = @meta_info["info"]["length"]
+    @total_size = @info["length"]
   end
 
   def set_folder
-    @folder = is_multi_file? ? @meta_info["info"]["name"] : nil
+    @folder = is_multi_file? ? @info["name"] : nil
   end
 
   def set_files
@@ -50,7 +50,7 @@ class MetaInfo
   end
 
   def set_multi_files
-    @meta_info["info"]["files"].inject(0) do |start_byte, file| 
+    @info["files"].inject(0) do |start_byte, file| 
       name = file["path"][0]
       length = file["length"]
       start_byte = start_byte
@@ -62,10 +62,10 @@ class MetaInfo
   end
 
   def set_single_file
-    name =  @meta_info["info"]["name"]
-    length = @meta_info["info"]["length"]
+    name =  @info["name"]
+    length = @info["length"]
     start_byte = 0
-    end_byte =  @meta_info["info"]["length"] - 1
+    end_byte =  @info["length"] - 1
     add_file(name, length, start_byte, end_byte)
   end
   
@@ -93,11 +93,11 @@ class MetaInfo
   end
 
   def get_correct_hash(index)
-    @meta_info["info"]["pieces"][20 * index...20 * (index+1)]
+    @info["pieces"][20 * index...20 * (index+1)]
   end
     
   def is_multi_file?
-    !@meta_info["info"]["files"].nil?
+    !@info["files"].nil?
   end
   
 end
