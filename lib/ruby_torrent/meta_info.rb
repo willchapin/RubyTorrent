@@ -51,14 +51,18 @@ class MetaInfo
 
   def set_multi_files
     @info["files"].inject(0) do |start_byte, file| 
-      name = file["path"][0]
-      length = file["length"]
-      start_byte = start_byte
-      end_byte = start_byte + file["length"] - 1
-      add_file(name, length, start_byte, end_byte)
-      
+      name, length, start_byte, end_byte = get_add_file_args(start_byte, file)
+      add_file(name, length, start_byte, end_byte)      
       start_byte + file["length"]
     end
+  end
+
+  def get_add_file_args(start_byte, file)
+    name = file["path"][0]
+    length = file["length"]
+    start_byte = start_byte
+    end_byte = start_byte + file["length"] - 1
+    return name, length, start_byte, end_byte
   end
   
   def add_file(name, length, start, fin)
