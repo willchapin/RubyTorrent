@@ -22,12 +22,13 @@ class BlockRequestScheduler
   
   def init_requests
     @peers.each do |peer|
-      NUM_PENDING.times do
-        block = @all_block_requests.pop
-        peer.pending_requests << block
-        @request_queue.push(assign_peer(peer, block))
-      end
+      NUM_PENDING.times { assign_request(peer, @all_block_requests.pop) }
     end    
+  end
+
+  def assign_request(peer, block)
+    peer.pending_requests << block
+    @request_queue.push(assign_peer(peer, block))
   end
   
   def store_all_but_last_piece
