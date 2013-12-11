@@ -5,7 +5,8 @@ class IncomingMessageProcess
 
   def pipe(message, output)
     puts "Peer #{message.peer.id} has sent you a #{message.type} message"
-    if message.type == :piece
+    case message.type
+    when :piece
       piece_index, byte_offset, block_data = split_piece_payload(message.payload)
       block = Block.new(piece_index,
                         byte_offset,
@@ -14,15 +15,15 @@ class IncomingMessageProcess
                         message.peer)
       remove_from_pending(block)
       output.push(block)
-    elsif message.type == :choking
+    when :choking
       message.peer.state[:is_choking] = true
-    elsif message.type == :unchoke
+    when :unchoke
       message.peer.state[:is_choking] = false
-    elsif message.type == :not_interested
+    when :not_interested
       message.peer.state[:is_interested] = false
-    elsif message.type == :interested
+    when :interested
       message.peer.state[:is_interested] = true
-    elsif message.type == :have
+    when :have
       message.peer.bitfield.have_piece(message.payload.unpack("N")[0])
       puts "have #{message.peer.bitfield}"
     end
