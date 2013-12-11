@@ -7,17 +7,18 @@ class BlockRequestScheduler
   
   def initialize(peers, metainfo)
     @peers = peers
-    @all_block_requests = create_blocks(metainfo)
+    @metainfo = metainfo
+    @all_block_requests = create_blocks
     @request_queue = Queue.new
-    create_blocks(metainfo)
+    create_blocks
     init_requests
   end
   
-  def create_blocks(metainfo)
+  def create_blocks
     requests = []
 #    requests =+ get_all_but_last_piece()
-    0.upto(num_pieces(metainfo) - 2).each do |piece_num|
-      0.upto(num_blocks_in_piece(metainfo) - 1).each do |block_num|
+    0.upto(num_pieces - 2).each do |piece_num|
+      0.upto(num_blocks_in_piece - 1).each do |block_num|
         requests.push(create_block(piece_num,
                                    BLOCK_SIZE * block_num,
                                    BLOCK_SIZE))
@@ -25,21 +26,26 @@ class BlockRequestScheduler
     end
 
     # last piece
-    0.upto(num_full_blocks_in_last_piece(metainfo) - 1) do |block_num|
-      requests.push(create_block(num_pieces(metainfo) - 1,
+    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
+      requests.push(create_block(num_pieces - 1,
                                  BLOCK_SIZE * block_num,
                                  BLOCK_SIZE))
     end
 
     # last block
-    requests.push(create_block(num_pieces(metainfo) - 1,
-                               BLOCK_SIZE * num_full_blocks_in_last_piece(metainfo),
-                               last_block_size(metainfo)))
+    requests.push(create_block(num_pieces - 1,
+                               last_block_offset,
+                               last_block_size))
     
     queue = Queue.new
     requests.each { |request| queue.push(request) }
     queue
   end
+
+  def push_request(index, offset, size)
+    requests.push(create_block(index, offset, size))
+  end
+  
 
   def pipe(incoming_block)
     
@@ -77,35 +83,35 @@ class BlockRequestScheduler
     { index: index, offset: offset, size: size }
   end
 
-  def num_pieces(metainfo)
-    (metainfo.total_size.to_f/metainfo.piece_length).ceil
+  def num_pieces
+    (@metainfo.total_size.to_f/@metainfo.piece_length).ceil
   end
 
-  def last_block_size(metainfo)
-    metainfo.total_size.remainder(BLOCK_SIZE)
+  def last_block_size
+    @metainfo.total_size.remainder(BLOCK_SIZE)
   end
 
-  def num_full_blocks(metainfo)
-    metainfo.total_size/BLOCK_SIZE
-  end
-
-  def total_num_blocks
-    (@metainfo.total_size.to_f/BLOCK_SIZE).ceil
+  def num_full_blocks
+    @metainfo.total_size/BLOCK_SIZE
   end
 
   def last_piece_size
-    file_size - (metainfo.piece_length * (metainfo.number_of_pieces - 1))
+    file_size - (@metainfo.piece_length * (@metainfo.number_of_pieces - 1))
   end
 
-  def num_blocks_in_piece(metainfo)
-    (metainfo.piece_length.to_f/BLOCK_SIZE).ceil
+  def num_blocks_in_piece
+    (@metainfo.piece_length.to_f/BLOCK_SIZE).ceil
   end
 
-  def num_full_blocks_in_last_piece(metainfo)
-    num_full_blocks(metainfo).remainder(num_blocks_in_piece(metainfo))
+  def num_full_blocks_in_last_piece
+    num_full_blocks.remainder(num_blocks_in_piece)
   end
 
-  def total_num_blocks_in_last_piece(metainfo)
-    num_full_blocks_in_last_piece(metainfo) + 1
+  def total_num_blocks_in_last_piece
+    num_full_blocks_in_last_piece + 1
+  end
+
+  def last_block_offset
+    BLOCK_SIZE * num_full_blocks_in_last_piece
   end
 end
