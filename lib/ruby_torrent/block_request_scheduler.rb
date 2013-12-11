@@ -10,70 +10,76 @@ class BlockRequestScheduler
     @metainfo = metainfo
     @all_block_requests = Queue.new
     @request_queue = Queue.new
-    create_blocks
+    store_block_requests
     init_requests
   end
   
-  def create_blocks
-    requests = []
-    0.upto(num_pieces - 2).each do |piece_num|
-      0.upto(num_blocks_in_piece - 1).each do |block_num|
-        @all_block_requests.push(create_block(piece_num,
-                                   BLOCK_SIZE * block_num,
-                                   BLOCK_SIZE))
-      end
-    end
-
-    # last piece
-    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-      @all_block_requests.push(create_block(num_pieces - 1,
-                                 BLOCK_SIZE * block_num,
-                                 BLOCK_SIZE))
-    end
-
-    # last block
-
-    push_request(num_pieces - 1,
-                 last_block_offset,
-                 last_block_size)
-       
-    # last block
+  def store_block_requests
+    store_all_but_last_piece
+    store_last_piece
+    store_last_block
   end
-
-  def push_request(index, offset, size)
-    @all_block_requests.push(create_block(index, offset, size))
-  end
- 
-  def pipe(incoming_block)
-    
-    if @all_block_requests.empty?
-      slowest_peer = @peers.sort_by{|peer| peer.pending_requests.length}.first
-      block = slowest_peer.pending_requests.last
-    else
-      block = @all_block_requests.pop
-    end
-
-    if block
-      incoming_block.peer.pending_requests << block
-      @request_queue.push(make_request(incoming_block.peer, block))    
-    end
-  end
-
-  def make_request(peer, block)
-    { connection: peer.connection,
-      index:      block[:index],
-      offset:     block[:offset],
-      size:       block[:size] }
-  end
-
+  
   def init_requests
     @peers.each do |peer|
       NUM_PENDING.times do
         block = @all_block_requests.pop
         peer.pending_requests << block
-        @request_queue.push(make_request(peer, block))
+        @request_queue.push(assign_peer(peer, block))
       end
     end    
+  end
+  
+  def store_all_but_last_piece
+    0.upto(num_pieces - 2).each do |piece_num|
+      0.upto(num_blocks_in_piece - 1).each do |block_num|
+        store_request(piece_num, block_offset(block_num), BLOCK_SIZE)
+      end
+    end
+  end
+
+  def store_last_piece
+    0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
+      store_request(num_pieces - 1, block_offset(block_num), BLOCK_SIZE)
+    end
+  end
+
+  def store_last_block
+    store_request(num_pieces - 1, last_block_offset, last_block_size)    
+  end
+
+  def store_request(index, offset, size)
+    @all_block_requests.push(create_block(index, offset, size))
+  end
+  
+  def pipe(incoming_block)
+    request = get_next_request(incoming_block)
+    enqueue_request(incoming_block, request) if request
+  end
+
+  def get_next_request(block)
+    if @all_block_requests.empty?
+      oldest_pending_request(block)
+    else
+      @all_block_requests.pop
+    end
+  end
+  
+  def enqueue_request(incoming_block, request)
+    incoming_block.peer.pending_requests << request
+    @request_queue.push(assign_peer(incoming_block.peer, request))    
+  end
+  
+  def oldest_pending_request(block)
+    slowest_peer = @peers.sort_by{|peer| peer.pending_requests.length}.first
+    slowest_peer.pending_requests.last
+  end
+  
+  def assign_peer(peer, block)
+    { connection: peer.connection,
+      index:      block[:index],
+      offset:     block[:offset],
+      size:       block[:size] }
   end
   
   def create_block(index, offset, size)
@@ -115,4 +121,9 @@ class BlockRequestScheduler
   def last_block_offset
     BLOCK_SIZE * num_full_blocks_in_last_piece
   end
+
+  def block_offset(block_num)
+    BLOCK_SIZE * block_num
+  end
+  
 end
