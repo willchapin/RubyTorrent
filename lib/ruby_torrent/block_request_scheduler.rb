@@ -8,7 +8,7 @@ class BlockRequestScheduler
   def initialize(peers, metainfo)
     @peers = peers
     @metainfo = metainfo
-    @all_block_requests = create_blocks
+    @all_block_requests = Queue.new
     @request_queue = Queue.new
     create_blocks
     init_requests
@@ -18,7 +18,7 @@ class BlockRequestScheduler
     requests = []
     0.upto(num_pieces - 2).each do |piece_num|
       0.upto(num_blocks_in_piece - 1).each do |block_num|
-        requests.push(create_block(piece_num,
+        @all_block_requests.push(create_block(piece_num,
                                    BLOCK_SIZE * block_num,
                                    BLOCK_SIZE))
       end
@@ -26,19 +26,16 @@ class BlockRequestScheduler
 
     # last piece
     0.upto(num_full_blocks_in_last_piece - 1) do |block_num|
-      requests.push(create_block(num_pieces - 1,
+      @all_block_requests.push(create_block(num_pieces - 1,
                                  BLOCK_SIZE * block_num,
                                  BLOCK_SIZE))
     end
 
     # last block
-    requests.push(create_block(num_pieces - 1,
-                               last_block_offset,
-                               last_block_size))
-    
-    push_request(num_pieces(metainfo) - 1,
-                 last_block_offset(metainfo),
-                 last_block_size(metainfo))
+
+    push_request(num_pieces - 1,
+                 last_block_offset,
+                 last_block_size)
        
     # last block
   end
@@ -46,11 +43,7 @@ class BlockRequestScheduler
   def push_request(index, offset, size)
     @all_block_requests.push(create_block(index, offset, size))
   end
-
-  def push_request(index, offset, size)
-    requests.push(create_block(index, offset, size))
-  end
-  
+ 
   def pipe(incoming_block)
     
     if @all_block_requests.empty?
@@ -119,7 +112,7 @@ class BlockRequestScheduler
     BLOCK_SIZE * num_full_blocks_in_last_piece
   end
 
-  def last_block_offset(metainfo)
-    BLOCK_SIZE * num_full_blocks_in_last_piece(metainfo)
+  def last_block_offset
+    BLOCK_SIZE * num_full_blocks_in_last_piece
   end
 end
