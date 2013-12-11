@@ -25,11 +25,6 @@ class BlockRequestScheduler
       NUM_PENDING.times { assign_request(peer, @all_block_requests.pop) }
     end    
   end
-
-  def assign_request(peer, block)
-    peer.pending_requests << block
-    @request_queue.push(assign_peer(peer, block))
-  end
   
   def store_all_but_last_piece
     0.upto(num_pieces - 2).each do |piece_num|
@@ -51,6 +46,11 @@ class BlockRequestScheduler
 
   def store_request(index, offset, size)
     @all_block_requests.push(create_block(index, offset, size))
+  end
+
+  def assign_request(peer, block)
+    peer.pending_requests << block
+    @request_queue.push(assign_peer(peer, block))
   end
   
   def pipe(incoming_block)
