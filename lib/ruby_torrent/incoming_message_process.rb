@@ -32,8 +32,7 @@ class IncomingMessageProcess
   private
 
   def remove_from_pending(block)
-    peer = block.peer
-    peer.pending_requests.delete_if do |req|
+    block.peer.pending_requests.delete_if do |req|
       if req
         req[:index] == block.piece_index and
         req[:offset] == block.offset
