@@ -7,15 +7,15 @@ class BlockRequestScheduler
   
   def initialize(peers, metainfo)
     @peers = peers
-    @all_blocks = create_blocks(peers, metainfo)
+    @all_block_requests = create_blocks(metainfo)
     @request_queue = Queue.new
-    create_blocks(peers, metainfo)
-    init_requests(peers)
+    create_blocks(metainfo)
+    init_requests
   end
   
-  def create_blocks(peers, metainfo)
+  def create_blocks(metainfo)
     requests = []
-
+#    requests =+ get_all_but_last_piece()
     0.upto(num_pieces(metainfo) - 2).each do |piece_num|
       0.upto(num_blocks_in_piece(metainfo) - 1).each do |block_num|
         requests.push(create_block(piece_num,
@@ -63,11 +63,10 @@ class BlockRequestScheduler
       size:       block[:size] }
   end
 
-
-  def init_requests(peers)
-    peers.each do |peer|
+  def init_requests
+    @peers.each do |peer|
       NUM_PENDING.times do
-        block = @all_blocks.pop
+        block = @all_block_requests.pop
         peer.pending_requests << block
         @request_queue.push(make_request(peer, block))
       end

@@ -62,6 +62,7 @@ class MetaInfo
     length = file["length"]
     start_byte = start_byte
     end_byte = start_byte + file["length"] - 1
+    
     return name, length, start_byte, end_byte
   end
   
