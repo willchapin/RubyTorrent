@@ -43,11 +43,11 @@ class BlockRequestScheduler
 
   def pipe(incoming_block)
     
-    if @all_blocks.empty?
+    if @all_block_requests.empty?
       slowest_peer = @peers.sort_by{|peer| peer.pending_requests.length}.first
       block = slowest_peer.pending_requests.last
     else
-      block = @all_blocks.pop
+      block = @all_block_requests.pop
     end
 
     if block
