@@ -2,8 +2,6 @@ require 'uri'
 
 class Tracker
   
-  attr_accessor 
-  
   def initialize(uri_string)
     @uri = URI(uri_string)
   end

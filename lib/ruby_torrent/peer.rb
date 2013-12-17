@@ -34,7 +34,7 @@ class Peer
   end
   
   def disconnect
-    self.connection.close
+    @connection.close
   end
   
   def set_bitfield
@@ -47,5 +47,21 @@ class Peer
       @bitfield = nil
     end
   end
-  
+
+  def start!(message_queue)
+    Thread.new { Message.parse_stream(self, message_queue) }
+    Thread.new { keep_alive }
+    Message.send_interested(self)
+  end
+
+  def keep_alive
+    loop do
+      begin
+        @connection.write("\0\0\0\0")
+      rescue
+        puts "keep alive broken"
+      end
+      sleep(60)
+    end
+  end 
 end

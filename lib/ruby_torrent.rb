@@ -20,9 +20,14 @@ require_relative 'ruby_torrent/tracker'
 require_relative 'ruby_torrent/peer'
 require_relative 'ruby_torrent/bitfield'
 require_relative 'ruby_torrent/message'
+require_relative 'ruby_torrent/utils'
+
+include Utils
 
 torrent = ARGV[0]
 download_path = ARGV[1]
+
 client = Client.new(torrent, download_path)
 client.run!
-client.join_threads
+
+Utils::join_threads
